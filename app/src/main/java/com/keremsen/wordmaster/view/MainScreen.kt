@@ -81,7 +81,7 @@ fun MainScreen(navController: NavController) {
                         coroutineScope.launch {
                             scale.animateTo(0.1f, animationSpec = tween(300))
                             alpha.animateTo(0f, animationSpec = tween(300))
-                            navController.navigate("SettingsScreen")
+                            navController.navigate("SettingScreen")
                         }
                     },
                     modifier = Modifier.size(60.dp)
@@ -95,7 +95,7 @@ fun MainScreen(navController: NavController) {
                 }
             }
 
-            // BAŞLA butonu animasyonlu
+            // BAŞLA butonu
             Button(
                 onClick = {  },
                 modifier = Modifier
