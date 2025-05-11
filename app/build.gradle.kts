@@ -57,8 +57,10 @@ dependencies {
 
     // JSON serialization library, works with the Kotlin serialization plugin
     implementation(libs.kotlinx.serialization.json)
-
+    //view model
     implementation (libs.androidx.lifecycle.viewmodel.compose)
+    //animation
+    implementation (libs.lottie.compose)
 
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
