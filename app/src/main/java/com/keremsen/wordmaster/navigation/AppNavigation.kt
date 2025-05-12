@@ -8,10 +8,12 @@ import androidx.navigation.compose.rememberNavController
 import com.keremsen.wordmaster.view.MainScreen
 import com.keremsen.wordmaster.view.ProfileScreen
 import com.keremsen.wordmaster.view.SettingScreen
+import com.keremsen.wordmaster.viewmodel.MusicPlayerViewModel
+import com.keremsen.wordmaster.viewmodel.SettingsViewModel
 
 
 @Composable
-fun AppNavigation() {
+fun AppNavigation(settingsViewModel: SettingsViewModel,musicPlayerViewModel: MusicPlayerViewModel) {
     val navController = rememberNavController()
 
     NavHost(
@@ -21,17 +23,17 @@ fun AppNavigation() {
         composable(
             route = "MainScreen",
         ) {
-            MainScreen(navController = navController)
+            MainScreen(navController = navController,settingsViewModel,musicPlayerViewModel)
         }
 
         composable(
             route = "SettingScreen",
 
         ) {
-            SettingScreen(navController = navController)
+            SettingScreen(navController = navController,settingsViewModel,musicPlayerViewModel)
         }
         composable(route = "ProfileScreen"){
-            ProfileScreen(navController = navController)
+            ProfileScreen(navController = navController,settingsViewModel,musicPlayerViewModel)
         }
     }
 }

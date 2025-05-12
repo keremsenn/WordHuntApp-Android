@@ -1,35 +1,93 @@
 package com.keremsen.wordmaster.view
 
+import android.media.MediaPlayer
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.EaseInOut
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.keremsen.wordmaster.R
+import com.keremsen.wordmaster.viewmodel.MusicPlayerViewModel
+import com.keremsen.wordmaster.viewmodel.SettingsViewModel
 import kotlinx.coroutines.launch
 
 @Composable
-fun MainScreen(navController: NavController) {
+fun MainScreen(navController: NavController,settingsViewModel: SettingsViewModel,musicPlayerViewModel: MusicPlayerViewModel) {
+    val context = LocalContext.current
+
+    val isSoundOn = settingsViewModel.isSoundOn
+
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     // ANİMASYONLAR
-    val scale = remember { Animatable(0.1f) }
-    val alpha = remember { Animatable(0f) }
+    val composition by rememberLottieComposition(
+        spec = LottieCompositionSpec.RawRes(R.raw.birdanimation)
+    )
+    val progress by animateLottieCompositionAsState(
+        composition = composition,
+        iterations = LottieConstants.IterateForever
+    )
+
+    val scale = remember { Animatable(1f) }
+    val alpha = remember { Animatable(1f) }
     val coroutineScope = rememberCoroutineScope()
 
-    LaunchedEffect(Unit) {
-        scale.animateTo(1f, animationSpec = tween(300))
-        alpha.animateTo(1f, animationSpec = tween(300))
+    val mediaPlayer = remember {
+        MediaPlayer.create(context, R.raw.clikedsound)
     }
+    DisposableEffect(Unit) {
+        onDispose {
+            mediaPlayer.release()
+        }
+    }
+
+
+    val animatedRadius by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 30f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 3000, easing = EaseInOut),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "radius"
+    )
+
+    val animatedAlpha by infiniteTransition.animateFloat(
+        initialValue = 0.3f,
+        targetValue = 0f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(durationMillis = 3000, easing = EaseInOut),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "alpha"
+    )
+
 
     Surface(
         modifier = Modifier.fillMaxSize()
@@ -60,6 +118,9 @@ fun MainScreen(navController: NavController) {
                 IconButton(
                     onClick = {
                         coroutineScope.launch {
+                            if(isSoundOn)
+                                mediaPlayer.start()
+
                             scale.animateTo(0.1f, animationSpec = tween(300))
                             alpha.animateTo(0f, animationSpec = tween(300))
                             navController.navigate("ProfileScreen")
@@ -79,6 +140,9 @@ fun MainScreen(navController: NavController) {
                 IconButton(
                     onClick = {
                         coroutineScope.launch {
+                            if(isSoundOn)
+                                mediaPlayer.start()
+
                             scale.animateTo(0.1f, animationSpec = tween(300))
                             alpha.animateTo(0f, animationSpec = tween(300))
                             navController.navigate("SettingScreen")
@@ -94,6 +158,46 @@ fun MainScreen(navController: NavController) {
                     )
                 }
             }
+
+            Box(modifier = Modifier.fillMaxSize()) {
+                LottieAnimation(
+                    composition = composition,
+                    progress = { progress },
+                    modifier = Modifier.fillMaxSize()
+                )
+            }
+            Box(
+                modifier = Modifier
+                    .size(250.dp)
+                    .align(Alignment.Center)
+                    .drawBehind {
+                        // Glow efekti sabit opaklıkla
+                        drawCircle(
+                            color = Color.White.copy(alpha = animatedAlpha),
+                            radius = size.minDimension / 2 + animatedRadius,
+                            center = center,
+                        )
+                    }
+                    .clip(CircleShape)
+                    .background(Color.White.copy(alpha = 0f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "Mevcut Bölüm",
+                        color = Color.White,
+                        fontSize = 24.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Text(
+                        text = "0",
+                        color = Color.White,
+                        fontSize = 38.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+
 
             // BAŞLA butonu
             Button(
@@ -112,9 +216,10 @@ fun MainScreen(navController: NavController) {
                 Text(
                     text = "BAŞLA",
                     fontSize = 20.sp,
-                    fontWeight = androidx.compose.ui.text.font.FontWeight.Bold
+                    fontWeight = FontWeight.Bold
                 )
             }
         }
     }
 }
+
