@@ -33,7 +33,7 @@ fun AppNavigation(settingsViewModel: SettingsViewModel,musicPlayerViewModel: Mus
             SettingScreen(navController = navController,settingsViewModel,musicPlayerViewModel)
         }
         composable(route = "ProfileScreen"){
-            ProfileScreen(navController = navController,settingsViewModel,musicPlayerViewModel)
+            ProfileScreen(navController = navController,settingsViewModel)
         }
     }
 }
