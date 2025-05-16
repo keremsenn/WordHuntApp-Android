@@ -3,6 +3,10 @@ plugins {
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.kotlin.compose)
     kotlin("plugin.serialization") version "2.0.21"
+
+    // Add the Google services Gradle plugin
+    id("com.google.gms.google-services")
+
 }
 
 android {
@@ -41,8 +45,25 @@ android {
 }
 
 dependencies {
+    implementation(libs.firebase.firestore.ktx)
     val nav_version = "2.8.9"
 
+    //firebase
+    implementation (libs.firebase.auth.ktx)
+    implementation (libs.play.services.auth)
+    //firestore
+    implementation (libs.firebase.firestore.ktx.v2490)
+    // LiveData için
+    implementation (libs.androidx.lifecycle.livedata.ktx)
+    // LiveData'nın Compose ile entegrasyonu için
+    implementation (libs.androidx.runtime.livedata)
+
+    // Import the Firebase BoM
+    implementation(platform(libs.firebase.bom))
+    // When using the BoM, don't specify versions in Firebase dependencies
+    implementation(libs.firebase.analytics)
+
+    //navigation
     implementation(libs.androidx.navigation.compose)
 
     // Views/Fragments integration
