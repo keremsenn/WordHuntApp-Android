@@ -47,10 +47,15 @@ android {
 dependencies {
     implementation(libs.firebase.firestore.ktx)
     val nav_version = "2.8.9"
-
+    //flowrom
+    implementation (libs.androidx.foundation)
+    //gson
+    implementation(libs.gson)
+    implementation(libs.kotlinx.serialization.json.v163)
     //firebase
     implementation (libs.firebase.auth.ktx)
     implementation (libs.play.services.auth)
+    implementation (libs.play.services.location)
     //firestore
     implementation (libs.firebase.firestore.ktx.v2490)
     // LiveData için
