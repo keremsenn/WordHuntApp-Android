@@ -1,5 +1,6 @@
 package com.keremsen.wordmaster.view
 
+import android.content.Context
 import android.media.MediaPlayer
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseInOut
@@ -14,6 +15,7 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -27,6 +29,8 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -34,14 +38,24 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.keremsen.wordmaster.R
+import com.keremsen.wordmaster.model.User
+import com.keremsen.wordmaster.viewmodel.AuthViewModel
+import com.keremsen.wordmaster.viewmodel.LevelManagerViewModel
 import com.keremsen.wordmaster.viewmodel.MusicPlayerViewModel
 import com.keremsen.wordmaster.viewmodel.SettingsViewModel
 import kotlinx.coroutines.launch
 
-@Composable
-fun MainScreen(navController: NavController,settingsViewModel: SettingsViewModel,musicPlayerViewModel: MusicPlayerViewModel) {
-    val context = LocalContext.current
 
+@Composable
+fun MainScreen(navController: NavController,settingsViewModel: SettingsViewModel,authViewModel:AuthViewModel) {
+    val context = LocalContext.current
+    val sharedPreferences = context.getSharedPreferences("UserPreferences", Context.MODE_PRIVATE)
+    val levelManager = remember { LevelManagerViewModel(sharedPreferences) }
+
+    var currentUser by remember { mutableStateOf(User()) }
+    authViewModel.userData.observeAsState().value?.let { newUserData ->
+        currentUser = newUserData
+    }
     val isSoundOn = settingsViewModel.isSoundOn
 
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
@@ -190,7 +204,7 @@ fun MainScreen(navController: NavController,settingsViewModel: SettingsViewModel
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = "0",
+                        text = if(currentUser.level == -1) levelManager.getLevel().toString()  else currentUser.level.toString() ,
                         color = Color.White,
                         fontSize = 38.sp,
                         fontWeight = FontWeight.Bold
@@ -201,7 +215,9 @@ fun MainScreen(navController: NavController,settingsViewModel: SettingsViewModel
 
             // BAŞLA butonu
             Button(
-                onClick = {  },
+                onClick = {
+                    navController.navigate("LevelScreen/${currentUser.level}")
+                },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 32.dp)
@@ -221,5 +237,6 @@ fun MainScreen(navController: NavController,settingsViewModel: SettingsViewModel
             }
         }
     }
+
 }
 
