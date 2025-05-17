@@ -14,6 +14,7 @@ import com.google.firebase.auth.AuthCredential
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.ListenerRegistration
 import com.keremsen.wordmaster.R
 import com.keremsen.wordmaster.model.User
 import kotlinx.coroutines.launch
@@ -23,6 +24,7 @@ import kotlinx.coroutines.tasks.await
 class AuthViewModel : ViewModel() {
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
+    private var firestoreListener: ListenerRegistration? = null
 
     private val _currentUser = MutableLiveData(auth.currentUser)
     val currentUser: LiveData<FirebaseUser?> = _currentUser
@@ -35,6 +37,53 @@ class AuthViewModel : ViewModel() {
 
     private val _userData = MutableLiveData<User?>()
     val userData: LiveData<User?> = _userData
+
+    private fun setupFirestoreListener(uid: String) {
+        firestoreListener?.remove() // Eski listener'ı temizle
+        firestoreListener = db.collection("users").document(uid)
+            .addSnapshotListener { snapshot, _ ->
+                _userData.value = snapshot?.toObject(User::class.java)
+            }
+    }
+
+    init {
+        auth.addAuthStateListener { firebaseAuth ->
+            _currentUser.value = firebaseAuth.currentUser
+            firebaseAuth.currentUser?.uid?.let { uid ->
+                setupFirestoreListener(uid) // Kullanıcı varsa verileri çek
+            }
+        }
+    }
+
+    fun updateUserLevel(newLevel: Int) {
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            _error.value = "Kullanıcı girişi yok!"
+            return
+        }
+        val updatedUser = _userData.value?.copy(level = newLevel)
+        _userData.value = updatedUser
+
+        // Firestore'daki 'users' koleksiyonunda güncelleme yap
+        db.collection("users")
+            .document(currentUser.uid)
+            .update("level", newLevel)
+            .addOnSuccessListener {
+                Log.d("AuthViewModel", "Level güncellendi: $newLevel")
+                // Not: Realtime listener otomatik olarak _userData'yı güncelleyecek
+            }
+            .addOnFailureListener { e ->
+                _error.value = "Level güncellenemedi: ${e.message}"
+                Log.e("AuthViewModel", "Firestore update error", e)
+            }
+    }
+    /**
+     * Level'ı 1 artırır
+     */
+    fun increaseLevel() {
+        val currentLevel = _userData.value?.level ?: 1
+        updateUserLevel(currentLevel + 1)
+    }
 
     fun addUserToFirestore(user: User) {
         db.collection("users").document(user.uid)
@@ -97,7 +146,7 @@ class AuthViewModel : ViewModel() {
     }
     suspend fun signOutFromGoogle(context: Context) {
         try {
-            // Giriş yaparken kullanılan aynı GSO yapılandırmasını kullan
+
             val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
                 .requestIdToken(context.getString(R.string.default_web_client_id))
                 .requestEmail()
@@ -117,7 +166,9 @@ class AuthViewModel : ViewModel() {
             try {
                 signOutFromGoogle(context)  // Önce Google oturumunu kapat
                 auth.signOut()  // Sonra Firebase oturumunu kapat
-                _currentUser.value = null  // UI'yi güncelle
+                _currentUser.value = null
+                _userData.value = null  // UserData'yı da sıfırla
+                _error.value = null  // Hataları temizle
             } catch (e: Exception) {
                 _error.value = "Çıkış yapılırken hata oluştu: ${e.message}"
                 Log.e("AuthViewModel", "Sign out failed", e)
