@@ -3,19 +3,25 @@ package com.keremsen.wordmaster.navigation
 
 
 import androidx.compose.runtime.Composable
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
+import com.keremsen.wordmaster.view.LevelScreen
 import com.keremsen.wordmaster.view.MainScreen
 import com.keremsen.wordmaster.view.ProfileScreen
+import com.keremsen.wordmaster.view.ResultScreen
 import com.keremsen.wordmaster.view.SettingScreen
 import com.keremsen.wordmaster.view.SplashScreen
+import com.keremsen.wordmaster.viewmodel.AuthViewModel
 import com.keremsen.wordmaster.viewmodel.MusicPlayerViewModel
 import com.keremsen.wordmaster.viewmodel.SettingsViewModel
+import com.keremsen.wordmaster.viewmodel.WordViewModel
 
 
 @Composable
-fun AppNavigation(settingsViewModel: SettingsViewModel,musicPlayerViewModel: MusicPlayerViewModel) {
+fun AppNavigation(settingsViewModel: SettingsViewModel,musicPlayerViewModel: MusicPlayerViewModel,authViewModel:AuthViewModel,wordViewModel: WordViewModel) {
     val navController = rememberNavController()
 
     NavHost(
@@ -25,11 +31,37 @@ fun AppNavigation(settingsViewModel: SettingsViewModel,musicPlayerViewModel: Mus
         composable("SplashScreen") {
             SplashScreen(navController)
         }
+        composable(
+            route = "ResultScreen/{level}",
+            arguments = listOf(
+                navArgument("level") {
+                    type = NavType.IntType
+                }
+            )
+        ) { backStackEntry ->
+            val level = backStackEntry.arguments?.getInt("level")
+            if (level != null) {
+                ResultScreen(navController, level,authViewModel)
+            }
+        }
+        composable(
+            route = "LevelScreen/{level}",
+            arguments = listOf(
+                navArgument("level") {
+                    type = NavType.IntType
+                }
+            )
+        ) { backStackEntry ->
+            val level = backStackEntry.arguments?.getInt("level")
+            if (level != null) {
+                LevelScreen(navController, wordViewModel,authViewModel, level)
+            }
+        }
 
         composable(
             route = "MainScreen",
         ) {
-            MainScreen(navController = navController,settingsViewModel,musicPlayerViewModel)
+            MainScreen(navController = navController,settingsViewModel,authViewModel)
         }
 
         composable(
@@ -39,7 +71,7 @@ fun AppNavigation(settingsViewModel: SettingsViewModel,musicPlayerViewModel: Mus
             SettingScreen(navController = navController,settingsViewModel,musicPlayerViewModel)
         }
         composable(route = "ProfileScreen"){
-            ProfileScreen(navController = navController,settingsViewModel)
+            ProfileScreen(navController = navController,settingsViewModel,authViewModel,musicPlayerViewModel)
         }
     }
 }
