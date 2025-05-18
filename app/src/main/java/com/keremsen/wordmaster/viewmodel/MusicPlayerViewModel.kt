@@ -12,8 +12,11 @@ import com.keremsen.wordmaster.R
 class MusicPlayerViewModel(application: Application) : AndroidViewModel(application), LifecycleEventObserver {
 
     private val _mediaPlayer: MediaPlayer = MediaPlayer.create(getApplication(), R.raw.naturevoice)
-    private val _isMusicOn = mutableStateOf(true)
+    private val _isMusicOn = mutableStateOf(false)
     val isMusicOn: State<Boolean> = _isMusicOn
+
+    private val _isMusicPause= mutableStateOf(true)
+    val isMusicPause: State<Boolean> = _isMusicOn
 
     init {
         _mediaPlayer.setOnCompletionListener {
@@ -22,7 +25,6 @@ class MusicPlayerViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    // Doğru override işareti ve fonksiyon imzası
     override fun onStateChanged(source: LifecycleOwner, event: Lifecycle.Event) {
         when (event) {
             Lifecycle.Event.ON_PAUSE -> pauseMusic()
@@ -32,14 +34,14 @@ class MusicPlayerViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    private fun pauseMusic() {
+    fun pauseMusic() {
         if (_mediaPlayer.isPlaying) {
             _mediaPlayer.pause()
-
-        }
+            _isMusicPause.value = true
+        }else _isMusicPause.value= true
     }
 
-    private fun releasePlayer() {
+    fun releasePlayer() {
         _mediaPlayer.release()
     }
 
@@ -47,6 +49,7 @@ class MusicPlayerViewModel(application: Application) : AndroidViewModel(applicat
         if (!_mediaPlayer.isPlaying) {
             _mediaPlayer.start()
             _isMusicOn.value = true
+            _isMusicPause.value = false
         }
     }
 
