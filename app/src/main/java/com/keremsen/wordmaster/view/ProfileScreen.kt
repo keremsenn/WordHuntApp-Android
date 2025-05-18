@@ -10,16 +10,19 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -41,7 +44,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import com.google.android.gms.auth.api.signin.GoogleSignIn
-import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.firebase.auth.GoogleAuthProvider
 import com.keremsen.wordmaster.R
 import com.keremsen.wordmaster.viewmodel.AuthViewModel
@@ -50,12 +52,24 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.text.font.FontWeight.Companion.Bold
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.ui.text.input.ImeAction
+import android.content.Context
+import androidx.compose.material3.OutlinedTextFieldDefaults.colors
+import androidx.compose.ui.text.TextStyle
+import com.keremsen.wordmaster.viewmodel.MusicPlayerViewModel
 
 @Composable
-fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewModel,authViewModel: AuthViewModel) {
+fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewModel,authViewModel: AuthViewModel,musicPlayerViewModel: MusicPlayerViewModel) {
     val isSoundOn = settingsViewModel.isSoundOn
-    val context = LocalContext.current
+    val isMusicOn = musicPlayerViewModel.isMusicOn.value
+    val isMusicPause = musicPlayerViewModel.isMusicPause.value
 
+    val context = LocalContext.current
+    val sharedPreferences = remember { context.getSharedPreferences("ProfilePrefs", Context.MODE_PRIVATE) }
 
     val coroutineScope = rememberCoroutineScope()
     val mediaPlayer = remember { MediaPlayer.create(context, R.raw.clikedsound) }
@@ -70,15 +84,23 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
     ) { result ->
         coroutineScope.launch {
             try {
+                if (isMusicPause){
+                    musicPlayerViewModel.startMusic()
+                }
                 val account = GoogleSignIn.getSignedInAccountFromIntent(result.data).await()
                 val credential = GoogleAuthProvider.getCredential(account.idToken, null)
                 authViewModel.signInWithCredential(credential)
+
             } catch (e: Exception) {
                 authViewModel.setError(e.message ?: "Google girişi başarısız")
             }
         }
     }
-
+    DisposableEffect(Unit) {
+        onDispose {
+            mediaPlayer.release()
+        }
+    }
     // Animasyon durumu
     var visible by remember { mutableStateOf(false) }
     val offsetY = animateFloatAsState(
@@ -90,6 +112,18 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
         targetValue = if (visible) 1f else 0f,
         animationSpec = tween(durationMillis = 300)
     ).value
+
+    var isEditingName by remember { mutableStateOf(false) }
+    var profileName by remember { 
+        mutableStateOf(sharedPreferences.getString("userName", "Misafir4856451") ?: "Misafir4856451") 
+    }
+
+    fun saveProfileName(name: String) {
+        sharedPreferences.edit().apply {
+            putString("userName", name)
+            apply()
+        }
+    }
 
     fun handleBack() {
         coroutineScope.launch {
@@ -157,11 +191,90 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
                     )
                 }
             }
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(5.dp))
             //profil kısmı
-            Row() {
-
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.3f),
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.Center
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(150.dp)
+                        .clickable {
+                            if (isSoundOn)
+                                mediaPlayer.start()
+                            isEditingName = true }
+                ) {
+                    Image(
+                        painter = painterResource(R.drawable.accounticon),
+                        contentDescription = "accountprofile",
+                    )
+                }
+                if (isEditingName) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        OutlinedTextField(
+                            value = profileName,
+                            onValueChange = { profileName = it },
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(end = 8.dp),
+                            singleLine = true,
+                            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
+                            keyboardActions = androidx.compose.foundation.text.KeyboardActions(
+                                onDone = {
+                                    saveProfileName(profileName)
+                                    isEditingName = false
+                                }
+                            ),
+                            colors = colors(
+                                focusedBorderColor = Color.White,
+                                unfocusedBorderColor = Color.White.copy(alpha = 0.5f),
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White
+                            ),
+                            textStyle = TextStyle(
+                                fontSize = 22.sp,
+                                fontWeight = Bold
+                            )
+                        )
+                        Button(
+                            onClick = {
+                                if (isSoundOn)
+                                    mediaPlayer.start()
+                                saveProfileName(profileName)
+                                isEditingName = false 
+                            },
+                            colors = androidx.compose.material3.ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFF4CAF50)
+                            )
+                        ) {
+                            Text(
+                                text = "Kaydet",
+                                color = Color.White,
+                                fontSize = 16.sp
+                            )
+                        }
+                    }
+                } else {
+                    Text(
+                        text = profileName,
+                        fontWeight = Bold,
+                        fontSize = 22.sp,
+                        color = Color.White,
+                        modifier = Modifier.padding(top = 2.dp)
+                    )
+                }
             }
+
             // Kullanıcı durumuna göre arayüz
             if (currentUser != null) {
                 // Giriş yapmış kullanıcı için
@@ -188,22 +301,45 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
                 }
             } else {
                 // Giriş yapılmamış durumda
-                IconButton(
-                    onClick = {
-                        authViewModel.prepareGoogleSignIn(context)
-                        signInIntent?.let {
-                            signInLauncher.launch(it)
-                        }
-                    },
-                    modifier = Modifier.padding(16.dp)
+                Box(
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .fillMaxWidth()
+                        .background(
+                            color = Color.White.copy(alpha = 0.2f),
+                            shape = RoundedCornerShape(24.dp)
+                        )
+                        .clickable {
+                            if (isSoundOn)
+                                mediaPlayer.start()
+                            if (isMusicOn)
+                                musicPlayerViewModel.pauseMusic()
+                            authViewModel.prepareGoogleSignIn(context)
+                            signInIntent?.let {
+                                signInLauncher.launch(it)
+                            }
+                        },
+                    contentAlignment = Alignment.Center
                 ) {
-                    Image(
-                        painter = painterResource(id = R.drawable.googleicon),
-                        contentDescription = "google",
-                        contentScale = ContentScale.Fit,
-                        modifier = Modifier.size(60.dp)
-                    )
-
+                    Row(
+                        modifier = Modifier
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.googleicon),
+                            contentDescription = "google",
+                            contentScale = ContentScale.Fit,
+                            modifier = Modifier.size(40.dp)
+                        )
+                        Spacer(modifier = Modifier.padding(horizontal = 8.dp))
+                        Text(
+                            text = "Google ile oturum açınız",
+                            fontSize = 20.sp,
+                            color = Color.White
+                        )
+                    }
                 }
             }
             // Hata mesajı gösterimi
