@@ -21,10 +21,11 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.tasks.await
 
 
-class AuthViewModel : ViewModel() {
+class AuthViewModel(private val context: Context) : ViewModel() {
     private val auth = FirebaseAuth.getInstance()
     private val db = FirebaseFirestore.getInstance()
     private var firestoreListener: ListenerRegistration? = null
+    private val sharedPreferences = context.getSharedPreferences("UserPreferences", Context.MODE_PRIVATE)
 
     private val _currentUser = MutableLiveData(auth.currentUser)
     val currentUser: LiveData<FirebaseUser?> = _currentUser
@@ -120,13 +121,16 @@ class AuthViewModel : ViewModel() {
                     val snapshot = userRef.get().await()
 
                     if (!snapshot.exists()) {
+                        // SharedPreferences'dan level değerini al
+                        val savedLevel = sharedPreferences.getInt("user_level", 1)
+                        
                         // Kullanıcı yoksa Firestore'a ekle
                         val user = User(
                             uid = firebaseUser.uid,
                             email = firebaseUser.email ?: "Bilinmiyor",
                             name = firebaseUser.displayName ?: "Bilinmiyor",
                             createdAt = System.currentTimeMillis().toString(),
-                            level = 1,
+                            level = savedLevel,  // SharedPreferences'dan alınan level değerini kullan
                             isAdmin = false
                         )
                         userRef.set(user).await()
