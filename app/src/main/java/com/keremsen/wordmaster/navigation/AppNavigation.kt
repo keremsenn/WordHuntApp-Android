@@ -14,7 +14,6 @@ import com.keremsen.wordmaster.view.ProfileScreen
 import com.keremsen.wordmaster.view.ResultScreen
 import com.keremsen.wordmaster.view.SettingScreen
 import com.keremsen.wordmaster.view.SplashScreen
-import com.keremsen.wordmaster.viewmodel.AuthViewModel
 import com.keremsen.wordmaster.viewmodel.LevelManagerViewModel
 import com.keremsen.wordmaster.viewmodel.MusicPlayerViewModel
 import com.keremsen.wordmaster.viewmodel.SettingsViewModel
@@ -22,7 +21,7 @@ import com.keremsen.wordmaster.viewmodel.WordViewModel
 
 
 @Composable
-fun AppNavigation(settingsViewModel: SettingsViewModel,musicPlayerViewModel: MusicPlayerViewModel,authViewModel:AuthViewModel,wordViewModel: WordViewModel) {
+fun AppNavigation(settingsViewModel: SettingsViewModel,musicPlayerViewModel: MusicPlayerViewModel,wordViewModel: WordViewModel) {
     val navController = rememberNavController()
 
     NavHost(
@@ -42,7 +41,7 @@ fun AppNavigation(settingsViewModel: SettingsViewModel,musicPlayerViewModel: Mus
         ) { backStackEntry ->
             val level = backStackEntry.arguments?.getInt("level")
             if (level != null) {
-                ResultScreen(navController,settingsViewModel, level,authViewModel)
+                ResultScreen(navController,settingsViewModel, level)
             }
         }
         composable(
@@ -55,14 +54,14 @@ fun AppNavigation(settingsViewModel: SettingsViewModel,musicPlayerViewModel: Mus
         ) { backStackEntry ->
             val level = backStackEntry.arguments?.getInt("level")
             if (level != null) {
-                LevelScreen(navController, wordViewModel,authViewModel,settingsViewModel, level)
+                LevelScreen(navController, wordViewModel,settingsViewModel, level)
             }
         }
 
         composable(
             route = "MainScreen",
         ) {
-            MainScreen(navController = navController,settingsViewModel,authViewModel)
+            MainScreen(navController = navController,settingsViewModel)
         }
 
         composable(
@@ -72,7 +71,7 @@ fun AppNavigation(settingsViewModel: SettingsViewModel,musicPlayerViewModel: Mus
             SettingScreen(navController = navController,settingsViewModel,musicPlayerViewModel)
         }
         composable(route = "ProfileScreen"){
-            ProfileScreen(navController = navController,settingsViewModel,authViewModel,musicPlayerViewModel)
+            ProfileScreen(navController = navController,settingsViewModel)
         }
     }
 }

@@ -1,7 +1,6 @@
 package com.keremsen.wordmaster.view
 
 import android.content.Context
-import android.media.MediaPlayer
 import android.media.SoundPool
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseInOut
@@ -16,7 +15,6 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
@@ -30,8 +28,6 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavController
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -39,24 +35,18 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.keremsen.wordmaster.R
-import com.keremsen.wordmaster.model.User
-import com.keremsen.wordmaster.viewmodel.AuthViewModel
 import com.keremsen.wordmaster.viewmodel.LevelManagerViewModel
-import com.keremsen.wordmaster.viewmodel.MusicPlayerViewModel
 import com.keremsen.wordmaster.viewmodel.SettingsViewModel
 import kotlinx.coroutines.launch
 
 
 @Composable
-fun MainScreen(navController: NavController,settingsViewModel: SettingsViewModel,authViewModel:AuthViewModel) {
+fun MainScreen(navController: NavController,settingsViewModel: SettingsViewModel) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("UserPreferences", Context.MODE_PRIVATE)
     val levelManager = remember { LevelManagerViewModel(sharedPreferences) }
 
-    var currentUser by remember { mutableStateOf(User()) }
-    authViewModel.userData.observeAsState().value?.let { newUserData ->
-        currentUser = newUserData
-    }
+    val currentLevel = levelManager.getLevel().toString()
     val isSoundOn = settingsViewModel.isSoundOn
 
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
@@ -81,11 +71,6 @@ fun MainScreen(navController: NavController,settingsViewModel: SettingsViewModel
     val soundId = remember {
         soundPool.load(context, R.raw.clikedsound, 1)
     }
-//    DisposableEffect(Unit) {
-//        onDispose {
-//            mediaPlayer.release()
-//        }
-//    }
 
 
     val animatedRadius by infiniteTransition.animateFloat(
@@ -214,7 +199,7 @@ fun MainScreen(navController: NavController,settingsViewModel: SettingsViewModel
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = if(currentUser.level == -1) levelManager.getLevel().toString()  else currentUser.level.toString() ,
+                        text = currentLevel,
                         color = Color.White,
                         fontSize = 38.sp,
                         fontWeight = FontWeight.Bold
@@ -230,7 +215,7 @@ fun MainScreen(navController: NavController,settingsViewModel: SettingsViewModel
                     if (isSoundOn) {
                         soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
                     }
-                    navController.navigate("LevelScreen/${currentUser.level}")
+                    navController.navigate("LevelScreen/${currentLevel}")
                 },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)

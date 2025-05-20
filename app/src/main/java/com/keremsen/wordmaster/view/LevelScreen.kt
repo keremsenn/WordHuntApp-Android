@@ -30,18 +30,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -50,8 +47,6 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.keremsen.wordmaster.R
-import com.keremsen.wordmaster.model.User
-import com.keremsen.wordmaster.viewmodel.AuthViewModel
 import com.keremsen.wordmaster.viewmodel.LevelManagerViewModel
 import com.keremsen.wordmaster.viewmodel.WordViewModel
 import kotlinx.coroutines.delay
@@ -60,8 +55,6 @@ import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.material3.TextButton
 import com.keremsen.wordmaster.viewmodel.SettingsViewModel
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.collectIsPressedAsState
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.ui.focus.FocusRequester
@@ -70,15 +63,9 @@ import androidx.compose.ui.focus.focusTarget
 import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.res.colorResource
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.BorderStroke
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedButton
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.ui.draw.alpha
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.draw.shadow
-import androidx.compose.ui.zIndex
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
@@ -86,7 +73,7 @@ import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 
 @Composable
-fun LevelScreen(navController: NavController, wordViewModel: WordViewModel, authViewModel: AuthViewModel,settingsViewModel: SettingsViewModel, level: Int) {
+fun LevelScreen(navController: NavController, wordViewModel: WordViewModel,settingsViewModel: SettingsViewModel, level: Int) {
     val context = LocalContext.current
     val focusRequester = remember { FocusRequester() }
     val isSoundOn = settingsViewModel.isSoundOn
@@ -103,7 +90,7 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel, auth
         soundPool.load(context, R.raw.clikedsound, 1)
     }
 
-    val currentLevel = levelManager.getLevel().toString()
+    val currentLevel = levelManager.getLevel()
 
     val wrongSound = remember { MediaPlayer.create(context, R.raw.wronganswersound) }
     val victorySound = remember { MediaPlayer.create(context, R.raw.victorysound) }
@@ -122,7 +109,7 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel, auth
     var startAnimation by remember { mutableStateOf(false) }
     val scale = animateFloatAsState(
         targetValue = if (startAnimation) 1f else 0f,
-        animationSpec = tween(durationMillis = 700)
+        animationSpec = tween(durationMillis = 700), label = ""
     )
     // Geri tuşu için handler
     BackHandler {
@@ -155,11 +142,6 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel, auth
                 }
             }
         )
-    }
-
-    var currentUser by remember { mutableStateOf(User()) }
-    authViewModel.userData.observeAsState().value?.let { newUserData ->
-        currentUser = newUserData
     }
 
     // Verileri ve yükleme durumunu alma
@@ -207,7 +189,7 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel, auth
                 }
             } else {
                 // Veriler yüklendiyse içeriği göster
-                val userLevel = if (currentUser.level == -1) currentLevel.toInt() else currentUser.level
+                val userLevel = currentLevel
                 val currentWord = words.find { it.id == userLevel }
 
                 if (currentWord == null) {
@@ -218,7 +200,7 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel, auth
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Text(
-                            text = "Seviye ${userLevel} bulunamadı. Lütfen daha sonra tekrar deneyin.",
+                            text = "Seviye $userLevel bulunamadı. Lütfen daha sonra tekrar deneyin.",
                             color = Color.Black,
                             fontSize = 20.sp,
                             fontWeight = FontWeight.Bold,
@@ -241,17 +223,13 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel, auth
                     var isWrongAnswer by remember { mutableStateOf(false) }
                     var isCorrectAnswer by remember { mutableStateOf(false) }
 
-                    var boxScale by remember { mutableStateOf(1f) }
-                    var cornerGlowAlpha by remember { mutableStateOf(0f) }
-                    val cornerGlowAlphaAnim by animateFloatAsState(
-                        targetValue = cornerGlowAlpha,
-                        animationSpec = tween(durationMillis = 300),
-                        label = "cornerGlow"
-                    )
-                    var rotationAngle by remember { mutableStateOf(0f) }
+                    var boxScale by remember { mutableFloatStateOf(1f) }
+
+                    var rotationAngle by remember { mutableFloatStateOf(0f) }
                     val animatedRotation by animateFloatAsState(
                         targetValue = rotationAngle,
-                        animationSpec = tween(durationMillis = 300, easing = LinearEasing)
+                        animationSpec = tween(durationMillis = 300, easing = LinearEasing),
+                        label = ""
                     )
 
                     // Klavye girişini dinle ve kutulara yerleştir
@@ -274,10 +252,9 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel, auth
                             delay(150)
                             rotationAngle = 0f
 
-                            cornerGlowAlpha = 1f
+
                             delay(400) // 1 saniye bekle
                             boxScale = 1f
-                            cornerGlowAlpha = 0f
                             isWrongAnswer = false
                         }
                     }
@@ -286,7 +263,6 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel, auth
                     LaunchedEffect(isCorrectAnswer) {
                         if (isCorrectAnswer) {
                             boxScale = 1.05f
-                            cornerGlowAlpha = 1f
 
                             rotationAngle = 360f
                             delay(700)
@@ -294,7 +270,6 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel, auth
 
                             delay(1000)
                             boxScale = 1f
-                            cornerGlowAlpha = 0f
                             delay(500)
 
                             // Sadece ResultScreen'e yönlendir
@@ -322,7 +297,7 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel, auth
                             // Level bilgisi
                             Spacer(modifier = Modifier.size(55.dp))
                             Text(
-                                text = "Level ${userLevel}",
+                                text = "Level $userLevel",
                                 color = colorResource(R.color.meaningBoxText),
                                 fontSize = 38.sp,
                                 fontWeight = FontWeight.Bold

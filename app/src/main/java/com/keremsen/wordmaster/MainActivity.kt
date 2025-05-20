@@ -5,8 +5,6 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import com.keremsen.wordmaster.navigation.AppNavigation
-import com.keremsen.wordmaster.viewmodel.AuthViewModel
-import com.keremsen.wordmaster.viewmodel.AuthViewModelFactory
 import com.keremsen.wordmaster.viewmodel.MusicPlayerViewModel
 import com.keremsen.wordmaster.viewmodel.SettingsViewModel
 import com.keremsen.wordmaster.viewmodel.WordViewModel
@@ -15,9 +13,6 @@ import com.keremsen.wordmaster.viewmodel.WordViewModel
 class MainActivity : ComponentActivity() {
     private val settingsViewModel: SettingsViewModel by viewModels()
     private val musicPlayerViewModel: MusicPlayerViewModel by viewModels()
-    private val authViewModel: AuthViewModel by viewModels {
-        AuthViewModelFactory(applicationContext)
-    }
     private val wordViewModel: WordViewModel by viewModels()
 
 
@@ -25,7 +20,7 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         lifecycle.addObserver(musicPlayerViewModel)
         setContent {
-            AppNavigation(settingsViewModel ,musicPlayerViewModel,authViewModel,wordViewModel)
+            AppNavigation(settingsViewModel ,musicPlayerViewModel,wordViewModel)
         }
     }
 }

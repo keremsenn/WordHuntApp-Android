@@ -5,7 +5,6 @@ import android.media.SoundPool
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Surface
@@ -25,15 +24,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.keremsen.wordmaster.R
-import com.keremsen.wordmaster.viewmodel.AuthViewModel
 import com.keremsen.wordmaster.viewmodel.LevelManagerViewModel
 import com.keremsen.wordmaster.viewmodel.SettingsViewModel
 
 @Composable
-fun ResultScreen(navController: NavController, settingsViewModel: SettingsViewModel, level: Int, authViewModel: AuthViewModel) {
+fun ResultScreen(navController: NavController, settingsViewModel: SettingsViewModel, level: Int) {
     val context = LocalContext.current
+
     val sharedPreferences = context.getSharedPreferences("UserPreferences", Context.MODE_PRIVATE)
     val levelManager = remember { LevelManagerViewModel(sharedPreferences) }
+
     val isSoundOn = settingsViewModel.isSoundOn
     val soundPool = remember {
         SoundPool.Builder()
@@ -45,8 +45,6 @@ fun ResultScreen(navController: NavController, settingsViewModel: SettingsViewMo
     }
     // Level artırma işlemi
     LaunchedEffect(Unit) {
-        // Level artırma işlemlerini yap
-        authViewModel.increaseLevel()
         levelManager.saveLevel(level + 1)
     }
 
