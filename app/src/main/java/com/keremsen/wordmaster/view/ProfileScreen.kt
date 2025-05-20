@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
@@ -58,9 +57,30 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.ui.text.input.ImeAction
 import android.content.Context
+import android.media.SoundPool
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccountCircle
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ExitToApp
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextFieldDefaults.colors
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.font.FontWeight
+import com.keremsen.wordmaster.utils.CustomIconButton
 import com.keremsen.wordmaster.viewmodel.MusicPlayerViewModel
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import com.keremsen.wordmaster.viewmodel.LevelManagerViewModel
 
 @Composable
 fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewModel,authViewModel: AuthViewModel,musicPlayerViewModel: MusicPlayerViewModel) {
@@ -70,13 +90,25 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
 
     val context = LocalContext.current
     val sharedPreferences = remember { context.getSharedPreferences("ProfilePrefs", Context.MODE_PRIVATE) }
+    val levelManagerSharedPref = context.getSharedPreferences("UserPreferences", Context.MODE_PRIVATE)
+    val levelManager = remember { LevelManagerViewModel(levelManagerSharedPref)  }
 
     val coroutineScope = rememberCoroutineScope()
-    val mediaPlayer = remember { MediaPlayer.create(context, R.raw.clikedsound) }
+    val soundPool = remember {
+        SoundPool.Builder()
+            .setMaxStreams(1)
+            .build()
+    }
+    val soundId = remember {
+        soundPool.load(context, R.raw.clikedsound, 1)
+    }
 
     val currentUser by authViewModel.currentUser.observeAsState()
     val authError by authViewModel.error.observeAsState()
     val signInIntent by authViewModel.signInIntent.observeAsState()
+
+    // Oturum sonlandırma dialog state'i
+    var showSignOutDialog by remember { mutableStateOf(false) }
 
     // Google Sign-In launcher
     val signInLauncher = rememberLauncherForActivityResult(
@@ -90,15 +122,12 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
                 val account = GoogleSignIn.getSignedInAccountFromIntent(result.data).await()
                 val credential = GoogleAuthProvider.getCredential(account.idToken, null)
                 authViewModel.signInWithCredential(credential)
-
+                navController.navigate("SplashScreen") {
+                    popUpTo(0) { inclusive = true }
+                }
             } catch (e: Exception) {
                 authViewModel.setError(e.message ?: "Google girişi başarısız")
             }
-        }
-    }
-    DisposableEffect(Unit) {
-        onDispose {
-            mediaPlayer.release()
         }
     }
     // Animasyon durumu
@@ -117,6 +146,8 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
     var profileName by remember { 
         mutableStateOf(sharedPreferences.getString("userName", "Misafir4856451") ?: "Misafir4856451") 
     }
+
+
 
     fun saveProfileName(name: String) {
         sharedPreferences.edit().apply {
@@ -140,7 +171,6 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
     DisposableEffect(Unit) {
         visible = true
         onDispose {
-            mediaPlayer.release()
             visible = false
         }
     }
@@ -172,8 +202,9 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
                 IconButton(
                     onClick = {
                         coroutineScope.launch {
-                            if (isSoundOn)
-                                mediaPlayer.start()
+                            if (isSoundOn) {
+                                soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                            }
                             visible = false
                             delay(200)
                             navController.navigate("MainScreen") {
@@ -196,17 +227,26 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .fillMaxHeight(0.3f),
+                    .fillMaxHeight(0.3f)
+                    .graphicsLayer {
+                        translationY = offsetY
+                        this.alpha = alpha
+                    },
                 horizontalAlignment = Alignment.CenterHorizontally,
                 verticalArrangement = Arrangement.Center
             ) {
                 Box(
                     modifier = Modifier
                         .size(150.dp)
-                        .clickable {
-                            if (isSoundOn)
-                                mediaPlayer.start()
-                            isEditingName = true }
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) {
+                            if (isSoundOn) {
+                                soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                            }
+                            isEditingName = true
+                        }
                 ) {
                     Image(
                         painter = painterResource(R.drawable.accounticon),
@@ -248,8 +288,9 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
                         )
                         Button(
                             onClick = {
-                                if (isSoundOn)
-                                    mediaPlayer.start()
+                                if (isSoundOn) {
+                                    soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                                }
                                 saveProfileName(profileName)
                                 isEditingName = false 
                             },
@@ -279,68 +320,146 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
             if (currentUser != null) {
                 // Giriş yapmış kullanıcı için
                 Column(
-                    modifier = Modifier.padding(16.dp),
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .graphicsLayer {
+                            translationY = offsetY
+                            this.alpha = alpha
+                        },
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
-                    Text(
-                        text = "Hoş geldin, ${currentUser?.displayName ?: "Kullanıcı"}",
-                        color = Color.White
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = currentUser?.email ?: "",
-                        color = Color.White
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Button(
-                        onClick = { authViewModel.signOut(context) },
-                        modifier = Modifier.padding(8.dp)
+                    // Oturum sonlandırma butonu
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
                     ) {
-                        Text("Çıkış Yap")
+                        Button(
+                            onClick = {
+                                if (isSoundOn) {
+                                    soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                                }
+                                showSignOutDialog = true
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth(0.8f)
+                                .padding(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Color(0xFFE57373)
+                            ),
+                            shape = RoundedCornerShape(8.dp)
+                        ) {
+                            Row(
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(8.dp)
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.ExitToApp,
+                                    contentDescription = "Çıkış",
+                                    tint = Color.White
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text(
+                                    text = "Oturumu Sonlandır",
+                                    color = Color.White,
+                                    fontSize = 16.sp
+                                )
+                            }
+                        }
+                    }
+                    // Oturum sonlandırma onay dialogu
+                    if (showSignOutDialog) {
+                        AlertDialog(
+                            onDismissRequest = { showSignOutDialog = false },
+                            title = {
+                                Text(
+                                    text = "Oturumu Sonlandır",
+                                    style = TextStyle(
+                                        fontSize = 20.sp,
+                                        fontWeight = FontWeight.Bold,
+                                        color = Color.Black
+                                    )
+                                )
+                            },
+                            text = {
+                                Column(
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                ) {
+                                    Text(
+                                        text = "E-posta: ${currentUser?.email ?: ""}",
+                                        style = TextStyle(
+                                            fontSize = 16.sp,
+                                            color = Color.Gray
+                                        ),
+                                        modifier = Modifier.padding(bottom = 16.dp)
+                                    )
+                                    Text(
+                                        text = "Oturumu kapatmak istediğinizden emin misiniz?",
+                                        style = TextStyle(
+                                            fontSize = 16.sp,
+                                            color = Color.Black
+                                        )
+                                    )
+                                }
+                            },
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        showSignOutDialog = false
+                                        // Level bilgisini sıfırla
+                                        levelManager.resetLevel()
+                                        authViewModel.signOut(context)
+                                        saveProfileName("Misafir4856451")
+                                        navController.navigate("SplashScreen") {
+                                            popUpTo(0) { inclusive = true }
+                                        }
+                                    }
+                                ) {
+                                    Text(
+                                        text = "Evet, Çıkış Yap",
+                                        color = Color(0xFFE57373)
+                                    )
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(
+                                    onClick = { showSignOutDialog = false }
+                                ) {
+                                    Text(
+                                        text = "İptal",
+                                        color = Color.Gray
+                                    )
+                                }
+                            },
+                            containerColor = Color.White,
+                            shape = RoundedCornerShape(16.dp)
+                        )
                     }
                 }
             } else {
-                // Giriş yapılmamış durumda
-                Box(
-                    modifier = Modifier
-                        .padding(16.dp)
-                        .fillMaxWidth()
-                        .background(
-                            color = Color.White.copy(alpha = 0.2f),
-                            shape = RoundedCornerShape(24.dp)
-                        )
-                        .clickable {
-                            if (isSoundOn)
-                                mediaPlayer.start()
+                Box(  modifier = Modifier.fillMaxWidth().graphicsLayer {
+                    translationY = offsetY
+                    this.alpha = alpha
+                },
+                    contentAlignment = Alignment.Center) {
+                    // Giriş yapılmamış durumda
+                    CustomIconButton(
+                        text = "Google ile oturum açınız",
+                        icon = R.drawable.googleicon,
+                        onClick = {
+                            if (isSoundOn) {
+                                soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                            }
                             if (isMusicOn)
                                 musicPlayerViewModel.pauseMusic()
                             authViewModel.prepareGoogleSignIn(context)
                             signInIntent?.let {
                                 signInLauncher.launch(it)
                             }
-                        },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .padding(16.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.Center
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.googleicon),
-                            contentDescription = "google",
-                            contentScale = ContentScale.Fit,
-                            modifier = Modifier.size(40.dp)
-                        )
-                        Spacer(modifier = Modifier.padding(horizontal = 8.dp))
-                        Text(
-                            text = "Google ile oturum açınız",
-                            fontSize = 20.sp,
-                            color = Color.White
-                        )
-                    }
+                        }
+                    )
                 }
+
             }
             // Hata mesajı gösterimi
             authError?.let { error ->

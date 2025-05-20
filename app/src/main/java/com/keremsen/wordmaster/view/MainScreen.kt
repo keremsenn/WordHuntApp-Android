@@ -2,6 +2,7 @@ package com.keremsen.wordmaster.view
 
 import android.content.Context
 import android.media.MediaPlayer
+import android.media.SoundPool
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.EaseInOut
 import androidx.compose.animation.core.RepeatMode
@@ -72,14 +73,19 @@ fun MainScreen(navController: NavController,settingsViewModel: SettingsViewModel
     val alpha = remember { Animatable(1f) }
     val coroutineScope = rememberCoroutineScope()
 
-    val mediaPlayer = remember {
-        MediaPlayer.create(context, R.raw.clikedsound)
+    val soundPool = remember {
+        SoundPool.Builder()
+            .setMaxStreams(1)
+            .build()
     }
-    DisposableEffect(Unit) {
-        onDispose {
-            mediaPlayer.release()
-        }
+    val soundId = remember {
+        soundPool.load(context, R.raw.clikedsound, 1)
     }
+//    DisposableEffect(Unit) {
+//        onDispose {
+//            mediaPlayer.release()
+//        }
+//    }
 
 
     val animatedRadius by infiniteTransition.animateFloat(
@@ -132,8 +138,10 @@ fun MainScreen(navController: NavController,settingsViewModel: SettingsViewModel
                 IconButton(
                     onClick = {
                         coroutineScope.launch {
-                            if(isSoundOn)
-                                mediaPlayer.start()
+
+                            if (isSoundOn) {
+                                soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                            }
 
                             scale.animateTo(0.1f, animationSpec = tween(300))
                             alpha.animateTo(0f, animationSpec = tween(300))
@@ -154,8 +162,10 @@ fun MainScreen(navController: NavController,settingsViewModel: SettingsViewModel
                 IconButton(
                     onClick = {
                         coroutineScope.launch {
-                            if(isSoundOn)
-                                mediaPlayer.start()
+
+                            if (isSoundOn) {
+                                soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                            }
 
                             scale.animateTo(0.1f, animationSpec = tween(300))
                             alpha.animateTo(0f, animationSpec = tween(300))
@@ -216,6 +226,10 @@ fun MainScreen(navController: NavController,settingsViewModel: SettingsViewModel
             // BAŞLA butonu
             Button(
                 onClick = {
+
+                    if (isSoundOn) {
+                        soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                    }
                     navController.navigate("LevelScreen/${currentUser.level}")
                 },
                 modifier = Modifier
@@ -231,6 +245,7 @@ fun MainScreen(navController: NavController,settingsViewModel: SettingsViewModel
             ) {
                 Text(
                     text = "BAŞLA",
+                    color = Color.White,
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )

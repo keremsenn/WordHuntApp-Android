@@ -1,6 +1,8 @@
 package com.keremsen.wordmaster.view
 
 import android.content.Context
+import android.media.MediaPlayer
+import android.media.SoundPool
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -21,7 +23,6 @@ import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -36,9 +37,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
@@ -53,18 +56,74 @@ import com.keremsen.wordmaster.viewmodel.LevelManagerViewModel
 import com.keremsen.wordmaster.viewmodel.WordViewModel
 import kotlinx.coroutines.delay
 import androidx.activity.compose.BackHandler
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.material3.TextButton
+import com.keremsen.wordmaster.viewmodel.SettingsViewModel
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.focusTarget
+import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.res.colorResource
+import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.zIndex
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieComposition
 
 @Composable
-fun LevelScreen(navController: NavController, wordViewModel: WordViewModel, authViewModel: AuthViewModel, level: Int) {
+fun LevelScreen(navController: NavController, wordViewModel: WordViewModel, authViewModel: AuthViewModel,settingsViewModel: SettingsViewModel, level: Int) {
     val context = LocalContext.current
+    val focusRequester = remember { FocusRequester() }
+    val isSoundOn = settingsViewModel.isSoundOn
+
     val sharedPreferences = context.getSharedPreferences("UserPreferences", Context.MODE_PRIVATE)
     val levelManager = remember { LevelManagerViewModel(sharedPreferences) }
+
+    val soundPool = remember {
+        SoundPool.Builder()
+            .setMaxStreams(1)
+            .build()
+    }
+    val soundId = remember {
+        soundPool.load(context, R.raw.clikedsound, 1)
+    }
+
     val currentLevel = levelManager.getLevel().toString()
+
+    val wrongSound = remember { MediaPlayer.create(context, R.raw.wronganswersound) }
+    val victorySound = remember { MediaPlayer.create(context, R.raw.victorysound) }
 
     var showExitDialog by remember { mutableStateOf(false) }
 
 
+    val composition by rememberLottieComposition(
+        spec = LottieCompositionSpec.RawRes(R.raw.victoryanimation)
+    )
+    val progress by animateLottieCompositionAsState(
+        composition = composition,
+        iterations = LottieConstants.IterateForever
+    )
+
+    var startAnimation by remember { mutableStateOf(false) }
+    val scale = animateFloatAsState(
+        targetValue = if (startAnimation) 1f else 0f,
+        animationSpec = tween(durationMillis = 700)
+    )
     // Geri tuşu için handler
     BackHandler {
         showExitDialog = true
@@ -75,7 +134,7 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel, auth
         AlertDialog(
             onDismissRequest = { showExitDialog = false },
             title = { Text("Çıkış Onayı") },
-            text = { Text("Çıkmak istediğinizden emin misiniz?") },
+            text = { Text("Ana sayfaya dönmek istediğinizden emin misiniz?") },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -118,11 +177,14 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel, auth
         Box(modifier = Modifier.fillMaxSize()) {
             // Arkaplan resmi
             Image(
-                painter = painterResource(R.drawable.levelbackground),
+                painter = painterResource(R.drawable.levelbackground2),
                 contentDescription = "background",
                 contentScale = ContentScale.Crop,
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .alpha(0.9f)
             )
+
 
             // Yükleme durumu veya içerik göster
             if (isLoading) {
@@ -178,14 +240,44 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel, auth
                     var currentInput by remember { mutableStateOf("") }
                     var isWrongAnswer by remember { mutableStateOf(false) }
                     var isCorrectAnswer by remember { mutableStateOf(false) }
+
                     var boxScale by remember { mutableStateOf(1f) }
+                    var cornerGlowAlpha by remember { mutableStateOf(0f) }
+                    val cornerGlowAlphaAnim by animateFloatAsState(
+                        targetValue = cornerGlowAlpha,
+                        animationSpec = tween(durationMillis = 300),
+                        label = "cornerGlow"
+                    )
+                    var rotationAngle by remember { mutableStateOf(0f) }
+                    val animatedRotation by animateFloatAsState(
+                        targetValue = rotationAngle,
+                        animationSpec = tween(durationMillis = 300, easing = LinearEasing)
+                    )
+
+                    // Klavye girişini dinle ve kutulara yerleştir
+                    LaunchedEffect(currentInput) {
+                        if (currentInput.length <= letterCount) {
+                            val newList = List(letterCount) { index ->
+                                if (index < currentInput.length) currentInput[index].toString() else ""
+                            }
+                            inputLetters = newList
+                        }
+                    }
 
                     // Yanlış cevap animasyonu için
                     LaunchedEffect(isWrongAnswer) {
                         if (isWrongAnswer) {
-                            boxScale = 1.2f
-                            delay(1000) // 1 saniye bekle
+                            boxScale = 1.05f
+                            rotationAngle = 45f
+                            delay(150)
+                            rotationAngle = -45f
+                            delay(150)
+                            rotationAngle = 0f
+
+                            cornerGlowAlpha = 1f
+                            delay(400) // 1 saniye bekle
                             boxScale = 1f
+                            cornerGlowAlpha = 0f
                             isWrongAnswer = false
                         }
                     }
@@ -193,21 +285,31 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel, auth
                     // Doğru cevap animasyonu için
                     LaunchedEffect(isCorrectAnswer) {
                         if (isCorrectAnswer) {
-                            boxScale = 1.2f
-                            delay(1000) // 1 saniye bekle
+                            boxScale = 1.05f
+                            cornerGlowAlpha = 1f
+
+                            rotationAngle = 360f
+                            delay(700)
+
+
+                            delay(1000)
                             boxScale = 1f
-                            isCorrectAnswer = false
-                            
+                            cornerGlowAlpha = 0f
+                            delay(500)
+
                             // Sadece ResultScreen'e yönlendir
                             navController.navigate("ResultScreen/$userLevel") {
                                 popUpTo("LevelScreen/$userLevel") { inclusive = true }
                             }
+                            isCorrectAnswer = false
                         }
                     }
 
                     Column(
                         modifier = Modifier.fillMaxSize(),
-                        verticalArrangement = Arrangement.Top
+                        verticalArrangement = Arrangement.Top,
+                        horizontalAlignment = Alignment.CenterHorizontally
+
                     ) {
                         // Header Row
                         Row(
@@ -221,24 +323,29 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel, auth
                             Spacer(modifier = Modifier.size(55.dp))
                             Text(
                                 text = "Level ${userLevel}",
-                                color = Color.Black,
+                                color = colorResource(R.color.meaningBoxText),
                                 fontSize = 38.sp,
                                 fontWeight = FontWeight.Bold
                             )
 
                             // Ana sayfa ikonu
                             IconButton(
-                                onClick = { showExitDialog = true },
+                                onClick = {
+                                    if (isSoundOn) {
+                                        soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                                    }
+
+                                    showExitDialog = true
+                                          },
+                                enabled = !isCorrectAnswer,
                                 modifier = Modifier.size(55.dp)
                             ) {
                                 Image(
-                                    painter = painterResource(id = R.drawable.homepageicon),
+                                    painter = painterResource(id = R.drawable.homepageicon2),
                                     contentDescription = "Ana Sayfa",
                                     modifier = Modifier.size(55.dp)
                                 )
                             }
-                            // Sağ tarafta boşluk için
-
                         }
 
                         // Body Row with letter boxes
@@ -248,37 +355,38 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel, auth
                                 .padding(16.dp),
                             contentAlignment = Alignment.Center
                         ) {
+                            // Kutular
                             FlowRow(
-                                modifier = Modifier.fillMaxWidth(),
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    ,
                                 horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally),
                                 verticalArrangement = Arrangement.spacedBy(10.dp),
                                 maxItemsInEachRow = Int.MAX_VALUE
                             ) {
                                 repeat(letterCount) { index ->
+
                                     Box(
                                         modifier = Modifier
                                             .size(50.dp)
                                             .scale(boxScale)
+                                            .rotate(animatedRotation)
                                             .background(
-                                                color = when {
-                                                    isWrongAnswer -> Color(0xFFB71C1C)
-                                                    isCorrectAnswer -> Color(0xFF1B5E20)
-                                                    else -> Color.Blue
-                                                },
+                                                color = colorResource(R.color.answerbox),
                                                 shape = RoundedCornerShape(8.dp)
                                             )
                                             .border(
-                                                width = 2.dp,
-                                                color = Color.White,
+                                                width = 3.dp,
+                                                color = colorResource(R.color.answerboxBorder),
                                                 shape = RoundedCornerShape(8.dp)
                                             )
                                             .padding(8.dp),
                                         contentAlignment = Alignment.Center
                                     ) {
                                         Text(
-                                            text = inputLetters.getOrElse(index) { "" },
+                                            text = inputLetters.getOrElse(index) { "" }.lowercase(),
                                             style = TextStyle(
-                                                fontSize = 20.sp,
+                                                fontSize = 28.sp,
                                                 fontWeight = FontWeight.Bold,
                                                 color = Color.White,
                                                 textAlign = TextAlign.Center
@@ -287,78 +395,95 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel, auth
                                     }
                                 }
                             }
+
+                            // Metin giriş kutusu - kutuların üzerinde
+                            BasicTextField(
+                                value = currentInput,
+                                onValueChange = { newValue ->
+                                    // Sadece harflere izin ver ve harf dışındaki karakterleri filtrele
+                                    val filteredInput = newValue.filter { it.isLetter() }
+                                    
+                                    if (filteredInput.length <= letterCount) {
+                                        // Yeni girişi küçük harfe çevir
+                                        val lowercaseInput = filteredInput.lowercase()
+                                        currentInput = lowercaseInput
+                                        
+                                        // Girilen harfleri kutulara dağıt (küçük harf olarak)
+                                        val newList = List(letterCount) { index ->
+                                            if (index < lowercaseInput.length) lowercaseInput[index].toString() else ""
+                                        }
+                                        inputLetters = newList
+                                    } else {
+                                        // Kutular doluysa, mevcut harfleri koru ve sadece son harfi güncelle
+                                        val lastChar = filteredInput.last().lowercase()
+                                        val currentList = inputLetters.toMutableList()
+                                        currentList[letterCount - 1] = lastChar
+                                        inputLetters = currentList
+                                        currentInput = currentList.joinToString("")
+                                    }
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .fillMaxHeight(0.12f)
+                                    .focusRequester(focusRequester)
+                                    .focusTarget(),cursorBrush = SolidColor(Color.Transparent),
+                                textStyle = TextStyle(
+                                    fontSize = 1.sp,
+                                    color = Color.Transparent
+                                )
+                            )
                         }
 
                         // İpucu / Kelime anlamı göster
                         Row(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .background(Color.White.copy(alpha = 0.7f), RoundedCornerShape(8.dp))
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                                .fillMaxWidth(0.96f)
+                                .background(
+                                    colorResource(R.color.meaningBox),
+                                    RoundedCornerShape(12.dp)
+                                )
+                                .border(
+                                    4.dp,
+                                    colorResource(R.color.meaningBoxBorder),
+                                    RoundedCornerShape(12.dp)
+                                )
+                                .padding(horizontal = 8.dp, vertical = 16.dp),
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(
-                                text = "İpucu: ${currentWord.meaning}",
-                                fontSize = 18.sp,
-                                color = Color.Black,
-                                fontWeight = FontWeight.Medium,
-                                textAlign = TextAlign.Center
-                            )
+                            Column(
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                            if(!isCorrectAnswer) {
+                                Text(
+                                    text = "İPUCU",
+                                    fontSize = 26.sp,
+                                    color = colorResource(R.color.meaningBoxText),
+                                    fontWeight = FontWeight.Bold,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.padding(bottom = 4.dp)
+                                )
+                                Text(
+                                    text = currentWord.meaning,
+                                    fontSize = 24.sp,
+                                    color = colorResource(R.color.meaningBoxText),
+                                    fontWeight = FontWeight.SemiBold,
+                                    textAlign = TextAlign.Center
+                                )
+                            }else{
+                                LottieAnimation(
+                                    composition = composition,
+                                    progress = { progress },
+                                    modifier = Modifier
+                                        .scale(scale.value)
+                                        .fillMaxWidth()
+                                        .fillMaxWidth(0.5f) // istersen boyutlandır
+                                )
+                            }
+
+                            }
                         }
 
-                        // Tek giriş kutusu
-                        Box(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 8.dp),
-                            contentAlignment = Alignment.Center
-                        ) {
-                            BasicTextField(
-                                value = currentInput,
-                                onValueChange = { newValue ->
-                                    // Sadece küçük harflere izin ver ve harf dışındaki karakterleri filtrele
-                                    val filteredInput = newValue.lowercase().filter { it.isLetter() }
-                                    
-                                    if (filteredInput.length <= letterCount) {
-                                        currentInput = filteredInput
-                                        // Girilen harfleri kutulara dağıt
-                                        val newList = List(letterCount) { index ->
-                                            if (index < filteredInput.length) filteredInput[index].toString() else ""
-                                        }
-                                        inputLetters = newList
-                                    }
-                                },
-                                textStyle = TextStyle(
-                                    fontSize = 24.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = Color.Black,
-                                    textAlign = TextAlign.Center
-                                ),
-                                decorationBox = { innerTextField ->
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth(0.8f)
-                                            .background(Color.White.copy(alpha = 0.3f), RoundedCornerShape(8.dp))
-                                            .padding(16.dp)
-                                    ) {
-                                        if (currentInput.isEmpty()) {
-                                            Text(
-                                                text = "Cevabınızı buraya yazın...",
-                                                style = TextStyle(
-                                                    fontSize = 24.sp,
-                                                    fontWeight = FontWeight.Normal,
-                                                    color = Color.Black.copy(alpha = 0.5f),
-                                                    textAlign = TextAlign.Center
-                                                ),
-                                                modifier = Modifier.fillMaxWidth()
-                                            )
-                                        }
-                                        innerTextField()
-                                    }
-                                }
-                            )
-                        }
 
                         // Cevap kontrol butonu
                         Row(
@@ -368,25 +493,38 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel, auth
                             horizontalArrangement = Arrangement.Center
                         ) {
                             Button(
+
                                 onClick = {
+
                                     // Kullanıcının girdiği kelimeyi kontrol et
                                     val userInput = currentInput
-                                    if (userInput == currentWord.word.lowercase()) {
+                                    if (userInput.lowercase() == currentWord.word.lowercase()) {
                                         // Doğru cevap - animasyonu başlat
+                                        if(isSoundOn)
+                                            victorySound.start()
+                                        startAnimation = true
                                         isCorrectAnswer = true
                                     } else {
                                         // Yanlış cevap - animasyonu başlat
+                                        if(isSoundOn)
+                                            wrongSound.start()
                                         isWrongAnswer = true
                                     }
-                                },
-                                colors = ButtonDefaults.buttonColors(Color.Green),
+                                },enabled = !isCorrectAnswer,
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = colorResource(R.color.LevelButton)
+                                   // Yazı rengi
+                                ),
                                 shape = RoundedCornerShape(8.dp),
-                                modifier = Modifier.padding(top = 16.dp)
+                                modifier = Modifier
+                                    .width(120.dp)
+                                    .height(60.dp)
+                                    .padding(top = 16.dp)
                             ) {
                                 Text(
-                                    text = "Kontrol Et",
+                                    text = "Onayla",
                                     color = Color.White,
-                                    fontSize = 18.sp
+                                    fontSize =22.sp
                                 )
                             }
                         }

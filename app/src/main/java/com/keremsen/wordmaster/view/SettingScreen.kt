@@ -1,6 +1,7 @@
 package com.keremsen.wordmaster.view
 
 
+import android.content.Context
 import android.content.Intent
 import android.media.MediaPlayer
 import android.net.Uri
@@ -12,6 +13,8 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -23,9 +26,13 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Email
+import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -41,6 +48,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -57,7 +65,11 @@ import kotlinx.coroutines.launch
 
 
 @Composable
-fun SettingScreen(navController: NavController, settingsViewModel: SettingsViewModel,musicPlayerViewModel: MusicPlayerViewModel) {
+fun SettingScreen(
+    navController: NavController,
+    settingsViewModel: SettingsViewModel,
+    musicPlayerViewModel: MusicPlayerViewModel
+) {
     val context = LocalContext.current
 
     val isSoundOn = settingsViewModel.isSoundOn
@@ -162,6 +174,7 @@ fun SettingScreen(navController: NavController, settingsViewModel: SettingsViewM
                         .fillMaxHeight(0.90f)
                         .border(3.dp, Color.White.copy(0.8f), RoundedCornerShape(32.dp))
                         .padding(15.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     Row(
                         modifier = Modifier
@@ -198,9 +211,10 @@ fun SettingScreen(navController: NavController, settingsViewModel: SettingsViewM
                                 )
                                 .clickable {
                                     if (isSoundOn) mediaPlayer.start()
-
-                                    if(isMusicOn)
-                                    musicPlayerViewModel.stopMusic() else musicPlayerViewModel.startMusic()
+                                    if (isMusicOn)
+                                        musicPlayerViewModel.stopMusic()
+                                    else
+                                        musicPlayerViewModel.startMusic()
                                 },
                             contentAlignment = Alignment.Center
                         ) {
@@ -236,29 +250,108 @@ fun SettingScreen(navController: NavController, settingsViewModel: SettingsViewM
                             )
                         }
                     }
+
+                    Spacer(modifier = Modifier.height(40.dp))
+
+                    // Yardım
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth(0.8f)
+                            .height(50.dp)
+                            .clickable(
+                                indication = null,
+                                interactionSource = remember { MutableInteractionSource() }
+                            ) {
+                                // Email Intent oluştur
+                                if (isSoundOn)
+                                    mediaPlayer.start()
+                                val intent = Intent(Intent.ACTION_SENDTO).apply {
+                                    data = Uri.parse("mailto:keremsen1071@gmail.com")
+                                    // İstersen subject ve body ekleyebilirsin
+                                    // putExtra(Intent.EXTRA_SUBJECT, "Konu")
+                                    // putExtra(Intent.EXTRA_TEXT, "Mesajınız")
+                                }
+                                context.startActivity(intent)
+                            }
+                            .border(
+                                width = 2.dp,
+                                color = Color.White,
+                                shape = RoundedCornerShape(12.dp)
+                            )
+                            .padding(horizontal = 16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.Email,
+                            contentDescription = "Email Icon",
+                            modifier = Modifier.size(28.dp),
+                            tint = Color.White
+                        )
+
+                        Spacer(modifier = Modifier.width(8.dp)) // İkon ile yazı arası boşluk
+
+                        Text(
+                            text = "İletişim",
+                            color = Color.White,
+                            fontSize = 25.sp
+                        )
+                    }
+
+
+
                     Spacer(modifier = Modifier.weight(1f))
-                    Row (
+                    Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center
-                    ){
+                    ) {
                         Text(
-                            text = "Icons by Icons8",
-                            fontSize = 15.sp,
+                            text = "Gizlilik Politikası",
+                            fontSize = 16.sp,
                             color = Color.White.copy(alpha = 0.7f),
                             modifier = Modifier
                                 .padding(8.dp)
-                                .clickable {
+                                .clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }
+                                ) {
+                                    if (isSoundOn) mediaPlayer.start()
+                                    val intent =
+                                        Intent(
+                                            Intent.ACTION_VIEW,
+                                            Uri.parse("https://docs.google.com/document/d/1A9kkhqOgkCRj3OZrHsMLlwenqVslebafbyF_SnqWzuo/edit?usp=sharing")
+                                        )
+                                    context.startActivity(intent)
+                                }
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+                        Box(
+                            modifier = Modifier
+                                .width(2.dp) // çizgi kalınlığı
+                                .height(24.dp) // çizgi uzunluğu
+                                .background(Color.Gray)
+                                .padding(horizontal = 8.dp)
+                        )
+                        Spacer(modifier = Modifier.size(8.dp))
+
+                        Text(
+                            text = "Icons by Icons8",
+                            fontSize = 16.sp,
+                            color = Color.White.copy(alpha = 0.7f),
+                            modifier = Modifier
+                                .padding(8.dp)
+                                .clickable(
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }
+                                ) {
+                                    if (isSoundOn) mediaPlayer.start()
                                     val intent =
                                         Intent(Intent.ACTION_VIEW, Uri.parse("https://icons8.com"))
                                     context.startActivity(intent)
                                 }
                         )
                     }
-
-
                 }
-
-
             }
         }
     }

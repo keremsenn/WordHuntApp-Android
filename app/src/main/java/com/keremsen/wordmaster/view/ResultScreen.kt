@@ -1,6 +1,7 @@
 package com.keremsen.wordmaster.view
 
 import android.content.Context
+import android.media.SoundPool
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -26,13 +27,22 @@ import androidx.navigation.NavController
 import com.keremsen.wordmaster.R
 import com.keremsen.wordmaster.viewmodel.AuthViewModel
 import com.keremsen.wordmaster.viewmodel.LevelManagerViewModel
+import com.keremsen.wordmaster.viewmodel.SettingsViewModel
 
 @Composable
-fun ResultScreen(navController: NavController, level: Int, authViewModel: AuthViewModel) {
+fun ResultScreen(navController: NavController, settingsViewModel: SettingsViewModel, level: Int, authViewModel: AuthViewModel) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("UserPreferences", Context.MODE_PRIVATE)
     val levelManager = remember { LevelManagerViewModel(sharedPreferences) }
-
+    val isSoundOn = settingsViewModel.isSoundOn
+    val soundPool = remember {
+        SoundPool.Builder()
+            .setMaxStreams(1)
+            .build()
+    }
+    val soundId = remember {
+        soundPool.load(context, R.raw.clikedsound, 1)
+    }
     // Level artırma işlemi
     LaunchedEffect(Unit) {
         // Level artırma işlemlerini yap
@@ -44,7 +54,7 @@ fun ResultScreen(navController: NavController, level: Int, authViewModel: AuthVi
         Box(modifier = Modifier.fillMaxSize()) {
             // Arkaplan resmi
             Image(
-                painter = painterResource(R.drawable.levelbackground),
+                painter = painterResource(R.drawable.levelbackground2),
                 contentDescription = "background",
                 contentScale = ContentScale.Crop,
                 modifier = Modifier.fillMaxSize()
@@ -93,6 +103,9 @@ fun ResultScreen(navController: NavController, level: Int, authViewModel: AuthVi
                         // Ana Sayfa butonu
                         Button(
                             onClick = {
+                                if (isSoundOn) {
+                                    soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                                }
                                 navController.navigate("MainScreen") {
                                     popUpTo(0) { inclusive = true }
                                 }
@@ -112,6 +125,9 @@ fun ResultScreen(navController: NavController, level: Int, authViewModel: AuthVi
                         // Yeni Level butonu
                         Button(
                             onClick = {
+                                if (isSoundOn) {
+                                    soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                                }
                                 navController.navigate("LevelScreen/${level + 1}") {
                                     popUpTo(0) { inclusive = true }
                                 }
@@ -122,7 +138,7 @@ fun ResultScreen(navController: NavController, level: Int, authViewModel: AuthVi
                                 .padding(start = 8.dp)
                         ) {
                             Text(
-                                text = "Yeni Level",
+                                text = "Level ${level+1}",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold
                             )
