@@ -15,6 +15,7 @@ import com.keremsen.wordmaster.view.ResultScreen
 import com.keremsen.wordmaster.view.SettingScreen
 import com.keremsen.wordmaster.view.SplashScreen
 import com.keremsen.wordmaster.viewmodel.AuthViewModel
+import com.keremsen.wordmaster.viewmodel.LevelManagerViewModel
 import com.keremsen.wordmaster.viewmodel.MusicPlayerViewModel
 import com.keremsen.wordmaster.viewmodel.SettingsViewModel
 import com.keremsen.wordmaster.viewmodel.WordViewModel
@@ -41,7 +42,7 @@ fun AppNavigation(settingsViewModel: SettingsViewModel,musicPlayerViewModel: Mus
         ) { backStackEntry ->
             val level = backStackEntry.arguments?.getInt("level")
             if (level != null) {
-                ResultScreen(navController, level,authViewModel)
+                ResultScreen(navController,settingsViewModel, level,authViewModel)
             }
         }
         composable(
@@ -54,7 +55,7 @@ fun AppNavigation(settingsViewModel: SettingsViewModel,musicPlayerViewModel: Mus
         ) { backStackEntry ->
             val level = backStackEntry.arguments?.getInt("level")
             if (level != null) {
-                LevelScreen(navController, wordViewModel,authViewModel, level)
+                LevelScreen(navController, wordViewModel,authViewModel,settingsViewModel, level)
             }
         }
 
