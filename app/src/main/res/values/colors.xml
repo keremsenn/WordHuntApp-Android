@@ -9,5 +9,18 @@
     <color name="white">#FFFFFFFF</color>
     <color name="Green">#429434</color>
     <color name="DarkGreen">#2F941F</color>
+
     <color name="LoadingBackGroundColor">#BAECED</color>
+    <color name="boxBackground">#BEC7E0</color>
+    <color name="boxBorder">#A0A6BC</color>
+
+    <color name="answerboxBorder">#A6778081</color>
+    <color name="answerbox">#587F898C</color>//0xFFE3F2FD
+
+    <color name="LevelButton">#649D61</color>
+
+    <color name="meaningBox">#C5D1F0FA</color>
+    <color name="meaningBoxText">#2B3E65</color>
+    <color name="meaningBoxBorder">#EDE6F3FB</color>
+
 </resources>
