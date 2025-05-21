@@ -24,7 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.keremsen.wordmaster.R
-import com.keremsen.wordmaster.viewmodel.LevelManagerViewModel
+import com.keremsen.wordmaster.viewmodel.UserManagerViewModel
 import com.keremsen.wordmaster.viewmodel.SettingsViewModel
 
 @Composable
@@ -32,7 +32,7 @@ fun ResultScreen(navController: NavController, settingsViewModel: SettingsViewMo
     val context = LocalContext.current
 
     val sharedPreferences = context.getSharedPreferences("UserPreferences", Context.MODE_PRIVATE)
-    val levelManager = remember { LevelManagerViewModel(sharedPreferences) }
+    val levelManager = remember { UserManagerViewModel(sharedPreferences) }
 
     val isSoundOn = settingsViewModel.isSoundOn
     val soundPool = remember {

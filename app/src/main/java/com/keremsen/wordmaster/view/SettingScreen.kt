@@ -9,11 +9,11 @@ import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.gestures.detectTapGestures
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -32,10 +32,14 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
@@ -48,7 +52,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
@@ -58,6 +61,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.keremsen.wordmaster.R
+import com.keremsen.wordmaster.viewmodel.UserManagerViewModel
 import com.keremsen.wordmaster.viewmodel.MusicPlayerViewModel
 import com.keremsen.wordmaster.viewmodel.SettingsViewModel
 import kotlinx.coroutines.delay
@@ -74,6 +78,11 @@ fun SettingScreen(
 
     val isSoundOn = settingsViewModel.isSoundOn
     val isMusicOn = musicPlayerViewModel.isMusicOn.value
+
+    var showDialog by remember { mutableStateOf(false) }
+
+    val sharedPreferences = context.getSharedPreferences("UserPreferences", Context.MODE_PRIVATE)
+    val userManager = remember { UserManagerViewModel(sharedPreferences) }
 
     val coroutineScope = rememberCoroutineScope()
     val mediaPlayer = remember { MediaPlayer.create(context, R.raw.clikedsound) }
@@ -289,7 +298,7 @@ fun SettingScreen(
                             tint = Color.White
                         )
 
-                        Spacer(modifier = Modifier.width(8.dp)) // İkon ile yazı arası boşluk
+                        Spacer(modifier = Modifier.width(8.dp))
 
                         Text(
                             text = "İletişim",
@@ -298,9 +307,58 @@ fun SettingScreen(
                         )
                     }
 
-
-
                     Spacer(modifier = Modifier.weight(1f))
+
+                    Row(modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center) {
+                        Button(
+                            onClick = { showDialog= true },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = colorResource(R.color.deleteAcountButton),
+                                contentColor = Color.White  // Yazı rengi
+                            ),
+                            shape = RoundedCornerShape(50), // Oval köşeler
+                            border = BorderStroke(3.dp, colorResource(R.color.deleteAcountButtonBorder)),
+                            modifier = Modifier
+                                .padding(16.dp)
+                                .height(45.dp).fillMaxWidth(0.7f)
+                        ) {
+                            Text(text = "Hesabı Sil", fontSize = 22.sp)
+                        }
+                    }
+                    if (showDialog) {
+                    AlertDialog(
+                        onDismissRequest = {
+                            showDialog = false
+                        },
+                        title = {
+                            Text(text = "Hesabı Sil",fontSize = 22.sp)
+                        },
+                        text = {
+                            Text("Hesap bilgileriniz silinecek bu işlem geri alınamaz. Emin misiniz?",
+                                fontSize = 18.sp)
+                        },
+                        confirmButton = {
+                            TextButton(onClick = {
+                                userManager.deleteAcount()
+                                showDialog = false
+                                navController.navigate("SplashScreen") {
+                                    popUpTo("SettingScreen") { inclusive = true }
+                                }
+                            }) {
+                                Text("Evet", color = Color.Red)
+                            }
+                        },
+                        dismissButton = {
+                            TextButton(onClick = {
+                                showDialog = false
+                            }) {
+                                Text("Hayır")
+                            }
+                        }
+                    )
+                }
+                    Spacer(modifier = Modifier.size(20.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center

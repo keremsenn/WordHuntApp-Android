@@ -53,16 +53,15 @@ import android.media.SoundPool
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material3.OutlinedTextFieldDefaults.colors
 import androidx.compose.ui.text.TextStyle
-import com.keremsen.wordmaster.viewmodel.LevelManagerViewModel
+import com.keremsen.wordmaster.viewmodel.UserManagerViewModel
 
 @Composable
 fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewModel) {
     val isSoundOn = settingsViewModel.isSoundOn
 
     val context = LocalContext.current
-    val sharedPreferences = remember { context.getSharedPreferences("ProfilePrefs", Context.MODE_PRIVATE) }
-    val levelManagerSharedPref = context.getSharedPreferences("UserPreferences", Context.MODE_PRIVATE)
-    val levelManager = remember { LevelManagerViewModel(levelManagerSharedPref)  }
+    val UserManagerSharedPref = context.getSharedPreferences("UserPreferences", Context.MODE_PRIVATE)
+    val userManager = remember { UserManagerViewModel(UserManagerSharedPref)  }
 
     val coroutineScope = rememberCoroutineScope()
     val soundPool = remember {
@@ -88,18 +87,10 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
     ).value
 
     var isEditingName by remember { mutableStateOf(false) }
-    var profileName by remember { 
-        mutableStateOf(sharedPreferences.getString("userName", "Misafir4856451") ?: "Misafir4856451") 
+    var profileName by remember {
+        mutableStateOf(userManager.getName())
     }
 
-
-
-    fun saveProfileName(name: String) {
-        sharedPreferences.edit().apply {
-            putString("userName", name)
-            apply()
-        }
-    }
 
     fun handleBack() {
         coroutineScope.launch {
@@ -216,7 +207,7 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
                             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                             keyboardActions = androidx.compose.foundation.text.KeyboardActions(
                                 onDone = {
-                                    saveProfileName(profileName)
+                                    userManager.saveName(profileName)
                                     isEditingName = false
                                 }
                             ),
@@ -236,7 +227,7 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
                                 if (isSoundOn) {
                                     soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
                                 }
-                                saveProfileName(profileName)
+                                userManager.saveName(profileName)
                                 isEditingName = false 
                             },
                             colors = androidx.compose.material3.ButtonDefaults.buttonColors(

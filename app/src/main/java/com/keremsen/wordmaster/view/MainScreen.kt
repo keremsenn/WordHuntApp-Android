@@ -19,6 +19,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
@@ -28,29 +29,34 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
+import com.airbnb.lottie.compose.rememberLottieAnimatable
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.keremsen.wordmaster.R
-import com.keremsen.wordmaster.viewmodel.LevelManagerViewModel
+import com.keremsen.wordmaster.viewmodel.UserManagerViewModel
 import com.keremsen.wordmaster.viewmodel.SettingsViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
 @Composable
-fun MainScreen(navController: NavController,settingsViewModel: SettingsViewModel) {
+fun MainScreen(navController: NavController, settingsViewModel: SettingsViewModel) {
     val context = LocalContext.current
     val sharedPreferences = context.getSharedPreferences("UserPreferences", Context.MODE_PRIVATE)
-    val levelManager = remember { LevelManagerViewModel(sharedPreferences) }
+    val userManager = remember { UserManagerViewModel(sharedPreferences) }
 
-    val currentLevel = levelManager.getLevel().toString()
+    val currentLevel = userManager.getLevel().toString()
     val isSoundOn = settingsViewModel.isSoundOn
+    val hintBonus = userManager.getHintBonus()
+
 
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
-    // ANİMASYONLAR
+
     val composition by rememberLottieComposition(
         spec = LottieCompositionSpec.RawRes(R.raw.birdanimation)
     )
@@ -72,7 +78,6 @@ fun MainScreen(navController: NavController,settingsViewModel: SettingsViewModel
         soundPool.load(context, R.raw.clikedsound, 1)
     }
 
-
     val animatedRadius by infiniteTransition.animateFloat(
         initialValue = 0f,
         targetValue = 30f,
@@ -92,7 +97,6 @@ fun MainScreen(navController: NavController,settingsViewModel: SettingsViewModel
         ),
         label = "alpha"
     )
-
 
     Surface(
         modifier = Modifier.fillMaxSize()
@@ -123,11 +127,9 @@ fun MainScreen(navController: NavController,settingsViewModel: SettingsViewModel
                 IconButton(
                     onClick = {
                         coroutineScope.launch {
-
                             if (isSoundOn) {
                                 soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
                             }
-
                             scale.animateTo(0.1f, animationSpec = tween(300))
                             alpha.animateTo(0f, animationSpec = tween(300))
                             navController.navigate("ProfileScreen")
@@ -147,11 +149,9 @@ fun MainScreen(navController: NavController,settingsViewModel: SettingsViewModel
                 IconButton(
                     onClick = {
                         coroutineScope.launch {
-
                             if (isSoundOn) {
                                 soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
                             }
-
                             scale.animateTo(0.1f, animationSpec = tween(300))
                             alpha.animateTo(0f, animationSpec = tween(300))
                             navController.navigate("SettingScreen")
@@ -168,6 +168,7 @@ fun MainScreen(navController: NavController,settingsViewModel: SettingsViewModel
                 }
             }
 
+            // Arka plandaki kuş animasyonu
             Box(modifier = Modifier.fillMaxSize()) {
                 LottieAnimation(
                     composition = composition,
@@ -175,12 +176,13 @@ fun MainScreen(navController: NavController,settingsViewModel: SettingsViewModel
                     modifier = Modifier.fillMaxSize()
                 )
             }
+
+            // Ortadaki "Mevcut Bölüm"
             Box(
                 modifier = Modifier
                     .size(250.dp)
                     .align(Alignment.Center)
                     .drawBehind {
-                        // Glow efekti sabit opaklıkla
                         drawCircle(
                             color = Color.White.copy(alpha = animatedAlpha),
                             radius = size.minDimension / 2 + animatedRadius,
@@ -207,15 +209,20 @@ fun MainScreen(navController: NavController,settingsViewModel: SettingsViewModel
                 }
             }
 
+            // Bonus bilgisi
+            Text(
+                text = hintBonus.toString(),
+                fontSize = 30.sp
+            )
 
             // BAŞLA butonu
             Button(
                 onClick = {
-
                     if (isSoundOn) {
                         soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
                     }
-                    navController.navigate("LevelScreen/${currentLevel}")
+                        navController.navigate("LevelScreen/$currentLevel")
+
                 },
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
@@ -239,4 +246,5 @@ fun MainScreen(navController: NavController,settingsViewModel: SettingsViewModel
     }
 
 }
+
 
