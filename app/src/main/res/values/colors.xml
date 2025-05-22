@@ -19,8 +19,17 @@
 
     <color name="LevelButton">#649D61</color>
 
+    <color name="LevelLockedBox">#C5D1F0FA</color>
+    <color name="LevelLockedBoxBorder">#EDE6F3FB</color>
+
     <color name="meaningBox">#C5D1F0FA</color>
     <color name="meaningBoxText">#2B3E65</color>
     <color name="meaningBoxBorder">#EDE6F3FB</color>
+
+    <color name="deleteAcountButton">#DE1A1A</color>
+    <color name="deleteAcountButtonBorder">#C71919</color>
+
+    <color name="transitionBackground">#20262B</color>
+
 
 </resources>
