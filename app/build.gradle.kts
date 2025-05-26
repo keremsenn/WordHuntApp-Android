@@ -32,6 +32,7 @@ android {
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11
         targetCompatibility = JavaVersion.VERSION_11
+        isCoreLibraryDesugaringEnabled = true
     }
     kotlinOptions {
         jvmTarget = "11"
@@ -45,6 +46,11 @@ dependencies {
     val nav_version = "2.8.9"
     //flowrom
     implementation (libs.androidx.foundation)
+    //google
+    implementation (libs.play.services.ads)
+    implementation(libs.androidx.webkit)
+    implementation(libs.play.services.base)
+    coreLibraryDesugaring ("com.android.tools:desugar_jdk_libs:2.1.5")
     //gson
     implementation(libs.gson)
     implementation(libs.kotlinx.serialization.json.v163)

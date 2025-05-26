@@ -8,13 +8,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import com.keremsen.wordmaster.view.BannerTest
 import com.keremsen.wordmaster.view.LevelScreen
 import com.keremsen.wordmaster.view.MainScreen
 import com.keremsen.wordmaster.view.ProfileScreen
 import com.keremsen.wordmaster.view.ResultScreen
 import com.keremsen.wordmaster.view.SettingScreen
 import com.keremsen.wordmaster.view.SplashScreen
-import com.keremsen.wordmaster.viewmodel.LevelManagerViewModel
 import com.keremsen.wordmaster.viewmodel.MusicPlayerViewModel
 import com.keremsen.wordmaster.viewmodel.SettingsViewModel
 import com.keremsen.wordmaster.viewmodel.WordViewModel
@@ -30,6 +30,9 @@ fun AppNavigation(settingsViewModel: SettingsViewModel,musicPlayerViewModel: Mus
     ) {
         composable("SplashScreen") {
             SplashScreen(navController)
+        }
+        composable("BannerTest") {
+            BannerTest(navController)
         }
         composable(
             route = "ResultScreen/{level}",
