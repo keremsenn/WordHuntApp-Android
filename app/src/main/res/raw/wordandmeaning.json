@@ -1,12 +1,7 @@
 [
   {
-    "word": "kedersiz",
-    "meaning": "Acısız, üzüntüsüz:",
-    "id": 0
-  },
-  {
     "word": "birer",
-    "meaning": "Bir sayısının üleştirme sayı sıfatı, her birine bir:",
+    "meaning": "Bir sayısının üleştirme sayı sıfatı, her birine bir.",
     "id": 1
   },
   {
@@ -46,11 +41,11 @@
   },
   {
     "word": "ikna",
-    "meaning": "Bir konuda birinin inanmasını sağlama, inandırma, kandırma:",
+    "meaning": "Bir konuda birinin inanmasını sağlama, inandırma.",
     "id": 9
   },
   {
-    "word": "sıcacık",
+    "word": "sicacik",
     "meaning": "Yeter derecede ve hoşa giden bir sıcaklığı olan.",
     "id": 10
   },
@@ -66,54 +61,56 @@
   },
   {
     "word": "seksen",
-    "meaning": "Yetmiş dokuzdan sonra gelen sayının adı ve bu sayıyı gösteren rakam, 80, LXXX.",
+    "meaning": "yetmiş dokuzdan sonra gelen sayının adı.",
     "id": 13
   },
   {
-    "word": "matbaacı",
-    "meaning": "Basımcı, basım evi sahibi.",
+    "word": "matbaaci",
+    "meaning": "Basılı materyalleri üretmek için özel makinelerle çalışan, görselleri ve yazıları kağıt gibi yüzeylere aktaran kişidir.",
     "id": 14
   },
   {
     "word": "ses",
-    "meaning": "Kulağın duyabildiği titreşim:",
+    "meaning": "Kulağın duyabildiği titreşim.",
     "id": 15
   },
   {
-    "word": "pekişmek",
-    "meaning": "Sertleşmek, katılaşmak.",
+    "word": "pekismek",
+    "meaning": "Birbirine bağlılığı ve dayanıklılığı artan şeylerin zamanla daha sıkı ve sağlam hale gelmesi durumudur. Sertleşmek, katılaşmak.",
     "id": 16
   },
   {
     "word": "engin",
-    "meaning": "Ucu bucağı görünmeyecek kadar geniş, çok geniş, vâsi:",
+    "meaning": "Ucu bucağı görünmeyecek kadar geniş, çok geniş.",
     "id": 17
   },
   {
-    "word": "tandır",
+    "word": "tandir",
     "meaning": "Yere çukur kazılarak yapılan bir tür fırın.",
     "id": 18
   },
   {
-    "word": "iyice",
-    "meaning": "İyiye yakın.",
+    "word": "pike",
+    "meaning": "Kabartmalı pamuklu kumaş.",
     "id": 19
   },
   {
-    "word": "kesinlik",
-    "meaning": "Kesin olma durumu veya kesin davranış, kat'iyet.",
-    "id": 20
-  },
+  "word": "kitapçi",
+  "meaning": "Kitap satan veya kitap bastırıp satan kimse.",
+  "id": 20
+  }
+  ,
   {
     "word": "madde",
-    "meaning": "Duyularla algılanabilen, bölünebilen, ağırlığı olan nesne:",
+    "meaning": "Duyularla algılanabilen, bölünebilen, ağırlığı olan nesne.",
     "id": 21
   },
   {
-    "word": "tart",
-    "meaning": "Kovma, çıkarma.",
+    "word": "filozof",
+    "meaning": "Felsefe ile uğraşan ve felsefenin gelişmesine katkıda bulunan kimse, felsefeci, feylesof.",
     "id": 22
-  },
+  }
+  ,
   {
     "word": "tıkaç",
     "meaning": "Herhangi bir şeyin delik veya ağzını tıkamaya yarayan nesne.",
@@ -121,12 +118,12 @@
   },
   {
     "word": "villa",
-    "meaning": "Yazlıkta veya şehir dışında, bahçeli ve güzel, müstakil ev:",
+    "meaning": "Yazlıkta veya şehir dışında, bahçeli ve güzel, müstakil ev.",
     "id": 24
   },
   {
     "word": "derece",
-    "meaning": "Bir süreç içindeki durumlardan her biri, basamak, aşama, rütbe, mertebe:",
+    "meaning": "Bir süreç içindeki durumlardan her biri, basamak, aşama, rütbe, mertebe.",
     "id": 25
   },
   {
@@ -16340,8 +16337,8 @@
     "id": 3267
   },
   {
-    "word": "kitapçı",
-    "meaning": "Kitap satan veya kitap bastırıp satan kimse.",
+    "word": "kesinlik",
+    "meaning": "şüpheye yer bırakmayacak derecede doğru ve net olma durumudur.",
     "id": 3268
   },
   {
@@ -18390,8 +18387,8 @@
     "id": 3677
   },
   {
-    "word": "filozof",
-    "meaning": "Felsefe ile uğraşan ve felsefenin gelişmesine katkıda bulunan kimse, felsefeci, feylesof.",
+    "word": "tart",
+    "meaning": "Kovma, çıkarma.",
     "id": 3678
   },
   {
@@ -38895,8 +38892,8 @@
     "id": 7778
   },
   {
-    "word": "pike",
-    "meaning": "Kabartmalı pamuklu kumaş.",
+    "word": "iyice",
+    "meaning": "İyiye yakın.",
     "id": 7779
   },
   {
