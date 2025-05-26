@@ -11,6 +11,8 @@ import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
@@ -19,7 +21,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.draw.drawBehind
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
@@ -29,30 +30,38 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.zIndex
 import androidx.navigation.NavController
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
-import com.airbnb.lottie.compose.rememberLottieAnimatable
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.google.android.gms.ads.MobileAds
 import com.keremsen.wordmaster.R
+import com.keremsen.wordmaster.utils.BannerAdd
+import com.keremsen.wordmaster.utils.BonusAdPopup
 import com.keremsen.wordmaster.viewmodel.UserManagerViewModel
 import com.keremsen.wordmaster.viewmodel.SettingsViewModel
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
 @Composable
 fun MainScreen(navController: NavController, settingsViewModel: SettingsViewModel) {
+
+    var showAdPopup by remember { mutableStateOf(false) }
+
     val context = LocalContext.current
+    //admob
+    MobileAds.initialize(context) {}
+
     val sharedPreferences = context.getSharedPreferences("UserPreferences", Context.MODE_PRIVATE)
     val userManager = remember { UserManagerViewModel(sharedPreferences) }
 
+    val hintCount = userManager.getHintBonus()
+
     val currentLevel = userManager.getLevel().toString()
     val isSoundOn = settingsViewModel.isSoundOn
-    val hintBonus = userManager.getHintBonus()
+
 
 
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
@@ -97,6 +106,27 @@ fun MainScreen(navController: NavController, settingsViewModel: SettingsViewMode
         ),
         label = "alpha"
     )
+    if (showAdPopup) {
+        BonusAdPopup(
+            onWatchAd = {
+                // Reklam izlendiyse yapılacaklar
+                showAdPopup = false
+            },
+            onDismiss = {
+                showAdPopup = false
+            },when {
+            hintCount in 1..4 -> "Ekstra Harf Bonus"
+            hintCount == 5 -> "Harf Bonus Bilgilendirme"
+            else -> "Harf Bonus Tükendi"
+        }, if(hintCount < 5 )
+            {"Yeni bir harf bonusu kazanmak için reklam izlemek ister misin?"}
+            else { "Harf bonusu kullanarak kelimedeki rastgele bir harfi öğrenebilirsin."},
+            if(hintCount == 5) true else false
+        )
+    }
+
+
+
 
     Surface(
         modifier = Modifier.fillMaxSize()
@@ -208,42 +238,82 @@ fun MainScreen(navController: NavController, settingsViewModel: SettingsViewMode
                     )
                 }
             }
-
-            // Bonus bilgisi
-            Text(
-                text = hintBonus.toString(),
-                fontSize = 30.sp
-            )
-
-            // BAŞLA butonu
-            Button(
-                onClick = {
-                    if (isSoundOn) {
-                        soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
-                    }
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.2f)
+                    .align(Alignment.BottomCenter),
+                contentAlignment = Alignment.Center
+            ) {
+                // BAŞLA butonu
+                Button(
+                    onClick = {
+                        if (isSoundOn) {
+                            soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                        }
                         navController.navigate("LevelScreen/$currentLevel")
 
-                },
-                modifier = Modifier
-                    .align(Alignment.BottomCenter)
-                    .padding(bottom = 32.dp)
-                    .width(200.dp)
-                    .height(56.dp)
-                    .scale(scale.value)
-                    .alpha(alpha.value),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Color(0xFF4CAF50)
-                )
-            ) {
-                Text(
-                    text = "BAŞLA",
-                    color = Color.White,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                )
+                    },
+                    modifier = Modifier
+                        .align(Alignment.TopCenter)
+                        .padding(bottom = 32.dp)
+                        .width(200.dp)
+                        .height(56.dp)
+                        .scale(scale.value)
+                        .alpha(alpha.value),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color(0xFF4CAF50)
+                    )
+                ) {
+                    Text(
+                        text = "BAŞLA",
+                        color = Color.White,
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .size(90.dp)
+                        .align(Alignment.TopEnd)
+                        .clickable(
+                            indication = null,
+                            interactionSource = remember { MutableInteractionSource() }
+                        ) {
+                            // reklam ver
+                            if(isSoundOn)
+                                soundPool.play(soundId,1f,1f,1,0,1f)
+
+                            showAdPopup = true
+                        }
+                ) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally, // içeriği ortala
+                        verticalArrangement = Arrangement.Top // yukarıdan aşağı yerleştir
+                    ) {
+                        Image(
+                            painter = painterResource(
+                                if (hintCount == 0) R.drawable.lightblubad else R.drawable.lightblub
+                            ),
+                            contentDescription = "hint",
+                            modifier = Modifier
+                                .size(60.dp) // Gerekirse boyutla
+                        )
+                        Text(
+                            text = hintCount.toString(),
+                            fontSize = 24.sp // 30.sp çok büyük olabilir bu alanda, istersen değiştirebilirsin
+                        )
+                    }
+                }
             }
+           BannerAdd(  modifier = Modifier
+               .fillMaxWidth()
+               .height(60.dp).align(Alignment.BottomCenter))
         }
+
     }
+
 
 }
 
