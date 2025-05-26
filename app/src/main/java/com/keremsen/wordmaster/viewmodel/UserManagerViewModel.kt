@@ -77,8 +77,12 @@ class UserManagerViewModel(private val sharedPreferences: SharedPreferences): Vi
     }
 
     fun deleteAcount(){
-        sharedPreferences.edit().putInt("user_level", 1).apply()
-        sharedPreferences.edit().putString("user_name", "Misafir583834").apply()
+        sharedPreferences.edit()
+            .putInt("user_level", 1)
+            .putString("user_name", "Misafir583834")
+            .putInt("hint_bonus", 5)
+            .putString("last_bonus_date", getTodayDateString())
+            .apply()
     }
 
 
