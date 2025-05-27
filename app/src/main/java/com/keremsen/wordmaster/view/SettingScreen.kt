@@ -377,7 +377,7 @@ fun SettingScreen(
                                     val intent =
                                         Intent(
                                             Intent.ACTION_VIEW,
-                                            Uri.parse("https://docs.google.com/document/d/1A9kkhqOgkCRj3OZrHsMLlwenqVslebafbyF_SnqWzuo/edit?usp=sharing")
+                                            Uri.parse("https://docs.google.com/document/d/1LhY6M1WrICkN0JNV0hF6NuHmnPITnEYBJfq4Bwx9GZ0/edit?usp=sharing")
                                         )
                                     context.startActivity(intent)
                                 }
