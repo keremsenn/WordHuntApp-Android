@@ -16,3 +16,4 @@ app/src/main/res/values/strings.xml
 .externalNativeBuild
 .cxx
 local.properties
+app/build.gradle.kts
