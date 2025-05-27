@@ -70,21 +70,23 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.zIndex
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
-import com.airbnb.lottie.compose.rememberLottieAnimatable
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.keremsen.wordmaster.utils.BonusAdPopup
 import kotlinx.coroutines.launch
 
 @Composable
-fun LevelScreen(navController: NavController, wordViewModel: WordViewModel,settingsViewModel: SettingsViewModel, level: Int) {
+fun LevelScreen(navController: NavController, wordViewModel: WordViewModel,settingsViewModel: SettingsViewModel) {
     val context = LocalContext.current
     val focusRequester = remember { FocusRequester() }
     val isSoundOn = settingsViewModel.isSoundOn
+
+    val isLoadingState = remember { mutableStateOf(false) }
+
+    val coroutineScope = rememberCoroutineScope()
 
     var showAdPopup by remember { mutableStateOf(false) }
 
@@ -92,6 +94,7 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel,setti
     val sharedPreferences = context.getSharedPreferences("UserPreferences", Context.MODE_PRIVATE)
     val userManager = remember { UserManagerViewModel(sharedPreferences) }
     val hintCount = remember { mutableIntStateOf(userManager.getHintBonus()) }
+
 
     val soundPool = remember {
         SoundPool.Builder()
@@ -146,18 +149,22 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel,setti
             confirmButton = {
                 TextButton(
                     onClick = {
-                        showExitDialog = false
-                        navController.navigate("MainScreen") {
-                            popUpTo(0) { inclusive = true }
+                        if (!isLoadingState.value) {
+                            showExitDialog = false
+                            navController.navigate("MainScreen") {
+                                popUpTo(0) { inclusive = true }
+                            }
                         }
-                    }
+                    }, enabled = !isLoadingState.value
                 ) {
                     Text("Evet")
                 }
             },
             dismissButton = {
                 TextButton(
-                    onClick = { showExitDialog = false }
+                    onClick = {
+                            showExitDialog = false
+                    }
                 ) {
                     Text("Hayır")
                 }
@@ -177,6 +184,7 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel,setti
     }
     if (showAdPopup) {
         BonusAdPopup(
+            userManager,
             onWatchAd = {
                 // Reklam izlendiyse yapılacaklar
                 showAdPopup = false
@@ -185,7 +193,18 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel,setti
                 showAdPopup = false
             },"Harf Hakkın Tükendi"
             , "Yeni bir harf hakkı kazanmak için reklam izlemek ister misin?",
-            false
+            false,isSoundOn,soundPool,soundId,
+            onRewardEarned = {
+                // Ödül alındığında hintCount'u güncelle
+                coroutineScope.launch {
+                    hintCount.intValue = userManager.getHintBonus()
+                    delay(500)
+                    hintCount.intValue = userManager.getHintBonus()
+                }
+
+            },
+            isLoading = isLoadingState.value,
+            setIsLoading = { isLoadingState.value = it }
         )
     }
 
@@ -550,17 +569,19 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel,setti
                                     )
                                 }
                                 Box(modifier = Modifier
-                                    .size(60.dp)
+                                    .size(90.dp)
                                     .align(Alignment.TopEnd)
                                     .clickable(
                                         indication = null,
-                                        interactionSource = remember { MutableInteractionSource() }
+                                        interactionSource = remember { MutableInteractionSource() },
+                                        enabled = availablePositions.isNotEmpty()
                                     ) {
 
-                                        if (hintCount.value != 0) {
+                                        if (hintCount.intValue != 0) {
                                             if(isSoundOn)
                                                bonusSound.play(bonusSoundId, 1f, 1f, 1, 0, 1f)
                                             // Eğer daha harf verilecek pozisyon varsa
+                                            userManager.useHint()
                                             if (availablePositions.isNotEmpty()) {
                                                 // Rastgele bir pozisyon seç
                                                 val randomIndex = availablePositions.random()
@@ -589,8 +610,8 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel,setti
                                                 }
                                                 currentInput = newCurrentInput.toString()
                                             }
-                                            userManager.useHint()
-                                            hintCount.value = userManager.getHintBonus()
+
+                                            hintCount.intValue = userManager.getHintBonus()
                                         }else{
                                             if (isSoundOn)
                                                 soundPool.play(soundId,1f,1f,1,0,1f)
@@ -600,8 +621,24 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel,setti
                                         }
                                     }
                                 ) {
-                                    Image(painter = painterResource(if(hintCount.value == 0) R.drawable.lightblubad else R.drawable.lightblub), contentDescription = "hint",
-                                        modifier = Modifier.fillMaxSize())
+                                    Column(
+                                        modifier = Modifier.fillMaxSize(),
+                                        horizontalAlignment = Alignment.CenterHorizontally, // içeriği ortala
+                                        verticalArrangement = Arrangement.Top // yukarıdan aşağı yerleştir
+                                    ) {
+                                        Image(
+                                            painter = painterResource(
+                                                if (hintCount.intValue == 0) R.drawable.lightblubad else R.drawable.lightblub
+                                            ),
+                                            contentDescription = "hint",
+                                            modifier = Modifier
+                                                .size(60.dp) // Gerekirse boyutla
+                                        )
+                                        Text(
+                                            text = hintCount.intValue.toString(),
+                                            fontSize = 24.sp // 30.sp çok büyük olabilir bu alanda, istersen değiştirebilirsin
+                                        )
+                                    }
                                 }
                             }
                         }
