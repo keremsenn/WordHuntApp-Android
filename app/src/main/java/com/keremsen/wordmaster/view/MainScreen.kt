@@ -42,6 +42,7 @@ import com.keremsen.wordmaster.utils.BannerAdd
 import com.keremsen.wordmaster.utils.BonusAdPopup
 import com.keremsen.wordmaster.viewmodel.UserManagerViewModel
 import com.keremsen.wordmaster.viewmodel.SettingsViewModel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 
@@ -50,6 +51,8 @@ fun MainScreen(navController: NavController, settingsViewModel: SettingsViewMode
 
     var showAdPopup by remember { mutableStateOf(false) }
 
+    val IsLoading = remember { mutableStateOf(false) }
+
     val context = LocalContext.current
     //admob
     MobileAds.initialize(context) {}
@@ -57,7 +60,7 @@ fun MainScreen(navController: NavController, settingsViewModel: SettingsViewMode
     val sharedPreferences = context.getSharedPreferences("UserPreferences", Context.MODE_PRIVATE)
     val userManager = remember { UserManagerViewModel(sharedPreferences) }
 
-    val hintCount = userManager.getHintBonus()
+    var hintCount = userManager.getHintBonus()
 
     val currentLevel = userManager.getLevel().toString()
     val isSoundOn = settingsViewModel.isSoundOn
@@ -107,21 +110,34 @@ fun MainScreen(navController: NavController, settingsViewModel: SettingsViewMode
         label = "alpha"
     )
     if (showAdPopup) {
-        BonusAdPopup(
+        BonusAdPopup(userManager,
             onWatchAd = {
                 // Reklam izlendiyse yapılacaklar
                 showAdPopup = false
             },
             onDismiss = {
                 showAdPopup = false
-            },when {
-            hintCount in 1..4 -> "Ekstra Harf Bonus"
-            hintCount == 5 -> "Harf Bonus Bilgilendirme"
-            else -> "Harf Bonus Tükendi"
-        }, if(hintCount < 5 )
-            {"Yeni bir harf bonusu kazanmak için reklam izlemek ister misin?"}
-            else { "Harf bonusu kullanarak kelimedeki rastgele bir harfi öğrenebilirsin."},
-            if(hintCount == 5) true else false
+            }, when {
+                hintCount in 1..4 -> "Ekstra Harf Bonus"
+                hintCount == 5 -> "Harf Bonus Bilgilendirme"
+                else -> "Harf Bonus Tükendi"
+            }, if (hintCount < 5) {
+                "Yeni bir harf bonusu kazanmak için reklam izlemek ister misin?"
+            } else {
+                "Harf bonusu kullanarak kelimedeki rastgele bir harfi öğrenebilirsin."
+            },
+            if (hintCount == 5) true else false, isSoundOn,
+            soundPool,soundId, onRewardEarned = {
+                // Ödül alındığında hintCount'u güncelle
+                coroutineScope.launch {
+                    hintCount = userManager.getHintBonus()
+                    delay(500)
+                    hintCount = userManager.getHintBonus()
+                }
+
+            },
+            isLoading = IsLoading.value,
+            setIsLoading = { IsLoading.value = it }
         )
     }
 
@@ -281,8 +297,8 @@ fun MainScreen(navController: NavController, settingsViewModel: SettingsViewMode
                             interactionSource = remember { MutableInteractionSource() }
                         ) {
                             // reklam ver
-                            if(isSoundOn)
-                                soundPool.play(soundId,1f,1f,1,0,1f)
+                            if (isSoundOn)
+                                soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
 
                             showAdPopup = true
                         }
@@ -309,7 +325,8 @@ fun MainScreen(navController: NavController, settingsViewModel: SettingsViewMode
             }
            BannerAdd(  modifier = Modifier
                .fillMaxWidth()
-               .height(60.dp).align(Alignment.BottomCenter))
+               .height(60.dp)
+               .align(Alignment.BottomCenter))
         }
 
     }
