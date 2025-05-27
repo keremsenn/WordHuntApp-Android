@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import com.keremsen.wordmaster.R
+import com.keremsen.wordmaster.utils.BannerAdd
 import com.keremsen.wordmaster.viewmodel.UserManagerViewModel
 import com.keremsen.wordmaster.viewmodel.SettingsViewModel
 
@@ -136,14 +137,18 @@ fun ResultScreen(navController: NavController, settingsViewModel: SettingsViewMo
                                 .padding(start = 8.dp)
                         ) {
                             Text(
-                                text = "Level ${level+1}",
+                                text = "Sonraki Level",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         }
                     }
                 }
+
             }
+            BannerAdd(  modifier = Modifier
+                .fillMaxWidth()
+                .height(60.dp).align(Alignment.BottomCenter))
         }
     }
 }
