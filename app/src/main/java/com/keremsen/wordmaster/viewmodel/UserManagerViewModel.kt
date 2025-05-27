@@ -40,6 +40,14 @@ class UserManagerViewModel(private val sharedPreferences: SharedPreferences): Vi
         return 0
     }
 
+    fun addHintBonusWithAdReward(amount: Int = 3, onComplete: (newTotal: Int) -> Unit) {
+        checkAndResetDailyBonus()
+        val current = getHintBonus()
+        val updated = (current + amount).coerceAtMost(5) // En fazla 5 olabilir
+        sharedPreferences.edit().putInt("hint_bonus", updated).apply()
+        onComplete(updated)
+    }
+
     private fun checkAndResetDailyBonus() {
         val today = getTodayDateString()
         val lastDate = sharedPreferences.getString("last_bonus_date", "")
