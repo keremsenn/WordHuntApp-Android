@@ -4,6 +4,7 @@ package com.keremsen.wordmaster.view
 import android.content.Context
 import android.content.Intent
 import android.media.MediaPlayer
+import android.media.SoundPool
 import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.FastOutSlowInEasing
@@ -85,10 +86,27 @@ fun SettingScreen(
     val userManager = remember { UserManagerViewModel(sharedPreferences) }
 
     val coroutineScope = rememberCoroutineScope()
-    val mediaPlayer = remember { MediaPlayer.create(context, R.raw.clikedsound) }
+
+
+    val soundPool = remember {
+        SoundPool.Builder()
+            .setMaxStreams(1)
+            .build()
+    }
+    val soundId = remember {
+        soundPool.load(context, R.raw.clikedsound, 1)
+    }
+
 
     // Animasyon durumu
     var visible by remember { mutableStateOf(false) }
+
+    DisposableEffect(Unit) {
+        visible = true
+        onDispose {
+            visible = false
+        }
+    }
 
     val offsetY = animateFloatAsState(
         targetValue = if (visible) 0f else 1000f,
@@ -113,13 +131,6 @@ fun SettingScreen(
         handleBack()
     }
 
-    DisposableEffect(Unit) {
-        visible = true
-        onDispose {
-            mediaPlayer.release()
-            visible = false
-        }
-    }
 
     Surface(modifier = Modifier.fillMaxSize()) {
         Image(
@@ -148,8 +159,9 @@ fun SettingScreen(
                 IconButton(
                     onClick = {
                         coroutineScope.launch {
-                            if (isSoundOn)
-                                mediaPlayer.start()
+                            if (isSoundOn) {
+                                soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                            }
                             visible = false
                             delay(200)
                             navController.navigate("MainScreen") {
@@ -219,7 +231,9 @@ fun SettingScreen(
                                     CircleShape
                                 )
                                 .clickable {
-                                    if (isSoundOn) mediaPlayer.start()
+                                    if (isSoundOn) {
+                                        soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                                    }
                                     if (isMusicOn)
                                         musicPlayerViewModel.stopMusic()
                                     else
@@ -246,7 +260,9 @@ fun SettingScreen(
                                     CircleShape
                                 )
                                 .clickable {
-                                    if (!isSoundOn) mediaPlayer.start()
+                                    if (isSoundOn) {
+                                        soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                                    }
                                     settingsViewModel.toggleSound()
                                 },
                             contentAlignment = Alignment.Center
@@ -272,8 +288,9 @@ fun SettingScreen(
                                 interactionSource = remember { MutableInteractionSource() }
                             ) {
                                 // Email Intent oluştur
-                                if (isSoundOn)
-                                    mediaPlayer.start()
+                                if (isSoundOn) {
+                                    soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                                }
                                 val intent = Intent(Intent.ACTION_SENDTO).apply {
                                     data = Uri.parse("mailto:keremsen1071@gmail.com")
                                     // İstersen subject ve body ekleyebilirsin
@@ -312,7 +329,11 @@ fun SettingScreen(
                     Row(modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.Center) {
                         Button(
-                            onClick = { showDialog= true },
+                            onClick = {
+                                if (isSoundOn) {
+                                    soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                                }
+                                showDialog= true },
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = colorResource(R.color.deleteAcountButton),
                                 contentColor = Color.White  // Yazı rengi
@@ -340,6 +361,10 @@ fun SettingScreen(
                         },
                         confirmButton = {
                             TextButton(onClick = {
+                                if (isSoundOn) {
+                                    soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                                }
+
                                 userManager.deleteAcount()
                                 showDialog = false
                                 navController.navigate("SplashScreen") {
@@ -351,6 +376,10 @@ fun SettingScreen(
                         },
                         dismissButton = {
                             TextButton(onClick = {
+                                if (isSoundOn) {
+                                    soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                                }
+
                                 showDialog = false
                             }) {
                                 Text("Hayır")
@@ -373,7 +402,9 @@ fun SettingScreen(
                                     indication = null,
                                     interactionSource = remember { MutableInteractionSource() }
                                 ) {
-                                    if (isSoundOn) mediaPlayer.start()
+                                    if (isSoundOn) {
+                                        soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                                    }
                                     val intent =
                                         Intent(
                                             Intent.ACTION_VIEW,
@@ -402,7 +433,9 @@ fun SettingScreen(
                                     indication = null,
                                     interactionSource = remember { MutableInteractionSource() }
                                 ) {
-                                    if (isSoundOn) mediaPlayer.start()
+                                    if (isSoundOn) {
+                                        soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                                    }
                                     val intent =
                                         Intent(Intent.ACTION_VIEW, Uri.parse("https://icons8.com"))
                                     context.startActivity(intent)

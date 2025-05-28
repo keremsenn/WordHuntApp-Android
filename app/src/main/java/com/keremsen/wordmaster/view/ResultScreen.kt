@@ -116,7 +116,7 @@ fun ResultScreen(navController: NavController, settingsViewModel: SettingsViewMo
                         ) {
                             Text(
                                 text = "Ana Sayfa",
-                                fontSize = 18.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         }
@@ -138,7 +138,7 @@ fun ResultScreen(navController: NavController, settingsViewModel: SettingsViewMo
                         ) {
                             Text(
                                 text = "Sonraki Level",
-                                fontSize = 18.sp,
+                                fontSize = 14.sp,
                                 fontWeight = FontWeight.Bold
                             )
                         }

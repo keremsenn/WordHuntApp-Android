@@ -150,6 +150,9 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel,setti
                 TextButton(
                     onClick = {
                         if (!isLoadingState.value) {
+                            if (isSoundOn) {
+                                soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                            }
                             showExitDialog = false
                             navController.navigate("MainScreen") {
                                 popUpTo(0) { inclusive = true }
@@ -163,6 +166,9 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel,setti
             dismissButton = {
                 TextButton(
                     onClick = {
+                        if (isSoundOn) {
+                            soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                        }
                             showExitDialog = false
                     }
                 ) {
@@ -192,7 +198,7 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel,setti
             onDismiss = {
                 showAdPopup = false
             },"Harf Hakkın Tükendi"
-            , "Yeni bir harf hakkı kazanmak için reklam izlemek ister misin?",
+            , "3 Adet harf hakkı kazanmak için reklam izlemek ister misin?",
             false,isSoundOn,soundPool,soundId,
             onRewardEarned = {
                 // Ödül alındığında hintCount'u güncelle

@@ -122,7 +122,7 @@ fun MainScreen(navController: NavController, settingsViewModel: SettingsViewMode
                 hintCount == 5 -> "Harf Bonus Bilgilendirme"
                 else -> "Harf Bonus Tükendi"
             }, if (hintCount < 5) {
-                "Yeni bir harf bonusu kazanmak için reklam izlemek ister misin?"
+                "3 Adet harf bonusu kazanmak için reklam izlemek ister misin?"
             } else {
                 "Harf bonusu kullanarak kelimedeki rastgele bir harfi öğrenebilirsin."
             },
