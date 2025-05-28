@@ -10,7 +10,7 @@
     "id": 2
   },
   {
-    "word": "parasiz",
+    "word": "parasız",
     "meaning": "Parası olmayan.",
     "id": 3
   },
@@ -30,7 +30,7 @@
     "id": 6
   },
   {
-    "word": "akiskan",
+    "word": "akışkan",
     "meaning": "Kendilerine özgü bir biçimleri olmayıp içinde bulundukları kabın biçimini alan ve yığın oluşturmayan (sıvı veya gaz), seyyal.",
     "id": 7
   },
@@ -45,13 +45,13 @@
     "id": 9
   },
   {
-    "word": "sicacik",
-    "meaning": "Yeter derecede ve hoşa giden bir sıcaklığı olan.",
+    "word": "tan",
+    "meaning": "Güneş doğmadan önceki alaca karanlık.",
     "id": 10
   },
   {
     "word": "eylül",
-    "meaning": "Yılın 30 gün süren dokuzuncu ayı.",
+    "meaning": "Yılın dokuzuncu ayı.",
     "id": 11
   },
   {
@@ -65,8 +65,8 @@
     "id": 13
   },
   {
-    "word": "matbaaci",
-    "meaning": "Basılı materyalleri üretmek için özel makinelerle çalışan, görselleri ve yazıları kağıt gibi yüzeylere aktaran kişidir.",
+    "word": "matbaacı",
+    "meaning": "Kitap, dergi, afiş, fatura gibi materyallerin çeşitli baskı teknikleri kullanılarak basım işini gerçekleştiren kişi.",
     "id": 14
   },
   {
@@ -75,27 +75,27 @@
     "id": 15
   },
   {
-    "word": "pekismek",
+    "word": "pekişmek",
     "meaning": "Birbirine bağlılığı ve dayanıklılığı artan şeylerin zamanla daha sıkı ve sağlam hale gelmesi durumudur. Sertleşmek, katılaşmak.",
     "id": 16
   },
   {
     "word": "engin",
-    "meaning": "Ucu bucağı görünmeyecek kadar geniş, çok geniş.",
+    "meaning": "Ucu bucağı görünmeyecek kadar geniş, uçsuz bucaksız, derin.",
     "id": 17
   },
   {
-    "word": "tandir",
+    "word": "tandır",
     "meaning": "Yere çukur kazılarak yapılan bir tür fırın.",
     "id": 18
   },
   {
-    "word": "pike",
-    "meaning": "Kabartmalı pamuklu kumaş.",
+    "word": "zümre",
+    "meaning": "Topluluk, takım, grup, camia.",
     "id": 19
   },
   {
-  "word": "kitapçi",
+  "word": "kitapçı",
   "meaning": "Kitap satan veya kitap bastırıp satan kimse.",
   "id": 20
   }
@@ -138,12 +138,12 @@
   },
   {
     "word": "sihirbaz",
-    "meaning": "Büyücü.",
+    "meaning": "numaraları ve el maharetleri yaparak halkı eğlendiren kişi.",
     "id": 28
   },
   {
-    "word": "mengene",
-    "meaning": "Onarma, işleme, düzeltme gibi işlemlerin uygulanacağı nesneyi sıkıştırıp istenildiği gibi tutturmaya yarayan bir çeşit sıkıştırıcı alet.",
+    "word": "soydaş",
+    "meaning": "Soyları bir olan, türdeş, hemcins.",
     "id": 29
   },
   {
@@ -153,7 +153,7 @@
   },
   {
     "word": "yorgun",
-    "meaning": "Çalışma veya değişik sebeplerle beden veya zihin etkinliği yavaşlayan, yorulmuş olan:",
+    "meaning": "Çalışma veya değişik sebeplerle beden veya zihin etkinliği yavaşlayan, yorulmuş olan.",
     "id": 31
   },
   {
@@ -162,13 +162,13 @@
     "id": 32
   },
   {
-    "word": "eroinman",
-    "meaning": "Eroin kullanma alışkanlığı olan (kimse), eroinci.",
+    "word": "karantina",
+    "meaning": "Bulaşıcı bir hastalığın yaygın olduğu bir yerden gelen kişileri, gemileri ve malları geçici olarak ayırma biçiminde alınan önlem.",
     "id": 33
   },
   {
     "word": "girmek",
-    "meaning": "Dışarıdan içeriye geçmek:",
+    "meaning": "Dışarıdan içeriye geçmek.",
     "id": 34
   },
   {
@@ -178,12 +178,12 @@
   },
   {
     "word": "pişmek",
-    "meaning": "Ateşte, fırında, kaynar suda veya yağda ısı etkisiyle yenilebilir duruma gelmek:",
+    "meaning": "Ateşte, fırında, kaynar suda veya yağda ısı etkisiyle yenilebilir duruma gelmek.",
     "id": 36
   },
   {
     "word": "tersleşmek",
-    "meaning": "Terslik etmek, zıt davranmak:",
+    "meaning": "Terslik etmek, zıt davranmak.",
     "id": 37
   },
   {
@@ -198,7 +198,7 @@
   },
   {
     "word": "adale",
-    "meaning": "Kas:",
+    "meaning": "Kas.",
     "id": 40
   },
   {
@@ -208,32 +208,32 @@
   },
   {
     "word": "uzlaşmak",
-    "meaning": "Aralarındaki düşünce veya çıkar ayrılığını, karşılıklı ödünlerle kaldırarak uyuşmak, karşılıklı anlaşmak ve mutabık kalmak:",
+    "meaning": "Aralarındaki düşünce veya çıkar ayrılığını, karşılıklı ödünlerle kaldırarak uyuşmak, karşılıklı anlaşmak ve mutabık kalmak.",
     "id": 42
   },
   {
     "word": "maket",
-    "meaning": "Yapı, heykel gibi şeylerin taslak durumundaki küçük örneği:",
+    "meaning": "Yapı, heykel gibi şeylerin taslak durumundaki küçük örneği.",
     "id": 43
   },
   {
     "word": "ömür",
-    "meaning": "Yaşama veya var olma süresi, yaşam, hayat:",
+    "meaning": "Yaşama veya var olma süresi, yaşam, hayat.",
     "id": 44
   },
   {
-    "word": "boa",
-    "meaning": "Boagillerden, yalnız Güney Amerika'da yaşayan, zehirsiz, çok iri, güçlü bir yılan (Boa constrictor).",
+    "word": "iğne",
+    "meaning": "Dikiş dikmeye yarayan, ince, ucu sivri, bir ucunda iplik geçecek deliği bulunan çelik araç.",
     "id": 45
   },
   {
     "word": "tenzih",
-    "meaning": "Arılama, kusur kondurmama.",
+    "meaning": "Arılama, kusurdan uzak tutma, kusur kondurmama..",
     "id": 46
   },
   {
     "word": "canan",
-    "meaning": "Gönülden sevilen, gönül verilmiş olan kadın, sevgili:",
+    "meaning": "Gönülden sevilen, gönül verilmiş olan kadın, sevgili.",
     "id": 47
   },
   {
@@ -247,18 +247,18 @@
     "id": 49
   },
   {
-    "word": "damping",
-    "meaning": "Milletler arası pazarları elde etmek veya elindeki malı elden çıkarmak için düşük fiyatla satma.",
+    "word": "kopya",
+    "meaning": "Bir sanat eserinin veya yazılı bir metnin taklidi.",
     "id": 50
   },
   {
     "word": "yeniden",
-    "meaning": "Gene, yine, bir daha, tekrar:",
+    "meaning": "Gene, yine, bir daha, tekrar.",
     "id": 51
   },
   {
-    "word": "fenni",
-    "meaning": "Fenle ilgili.",
+    "word": "harp",
+    "meaning": "Savaş.",
     "id": 52
   },
   {
@@ -288,7 +288,7 @@
   },
   {
     "word": "retina",
-    "meaning": "Ağ tabaka.",
+    "meaning": "Gözün arkasında bulunan, ışığı algılayıp görmeyi sağlayan sinir tabakasıdır.",
     "id": 58
   },
   {
@@ -308,12 +308,12 @@
   },
   {
     "word": "moruk",
-    "meaning": "Yaşlı erkek, baba:",
+    "meaning": "Yaşlı erkek, baba.",
     "id": 62
   },
   {
     "word": "kupkuru",
-    "meaning": "Çok kuru:",
+    "meaning": "Çok kuru.",
     "id": 63
   },
   {
@@ -373,12 +373,12 @@
   },
   {
     "word": "manav",
-    "meaning": "Meyve ve sebze satan yer:",
+    "meaning": "Meyve ve sebze satan yer.",
     "id": 75
   },
   {
     "word": "edep",
-    "meaning": "Toplum töresine uygun davranma, incelik:",
+    "meaning": "Toplum töresine uygun davranma, incelik.",
     "id": 76
   },
   {
@@ -443,7 +443,7 @@
   },
   {
     "word": "kız",
-    "meaning": "Dişi çocuk:",
+    "meaning": "Dişi çocuk.",
     "id": 89
   },
   {
@@ -508,7 +508,7 @@
   },
   {
     "word": "ego",
-    "meaning": "Ben:",
+    "meaning": "Kişinin özgüveninin ve özsaygısının meydana getirdiği iç alemi.",
     "id": 102
   },
   {
@@ -1097,8 +1097,8 @@
     "id": 219
   },
   {
-    "word": "zümre",
-    "meaning": "Topluluk, takım, grup, camia:",
+    "word": "pike",
+    "meaning": "Kabartmalı pamuklu kumaş.",
     "id": 220
   },
   {
@@ -2707,8 +2707,8 @@
     "id": 541
   },
   {
-    "word": "karantina",
-    "meaning": "Bulaşıcı bir hastalığın yaygın olduğu bir yerden gelen kişileri, gemileri ve malları geçici olarak ayırma biçiminde alınan önlem.",
+    "word": "eroinman",
+    "meaning": "Eroin kullanma alışkanlığı olan (kimse), eroinci.",
     "id": 542
   },
   {
@@ -3682,8 +3682,8 @@
     "id": 736
   },
   {
-    "word": "iğne",
-    "meaning": "Dikiş dikmeye yarayan, ince, ucu sivri, bir ucunda iplik geçecek deliği bulunan çelik araç.",
+    "word": "boa",
+    "meaning": "Boagillerden, yalnız Güney Amerika'da yaşayan, zehirsiz, çok iri, güçlü bir yılan .",
     "id": 737
   },
   {
@@ -6717,8 +6717,8 @@
     "id": 1343
   },
   {
-    "word": "kopya",
-    "meaning": "Bir sanat eserinin veya yazılı bir metnin taklidi:",
+    "word": "damping",
+    "meaning": "Milletler arası pazarları elde etmek veya elindeki malı elden çıkarmak için düşük fiyatla satma.",
     "id": 1344
   },
   {
@@ -7222,8 +7222,8 @@
     "id": 1444
   },
   {
-    "word": "tan",
-    "meaning": "Güneş doğmadan önceki alaca karanlık.",
+    "word": "sıcacık",
+    "meaning": "Yeter derecede ve hoşa giden bir sıcaklığı olan.",
     "id": 1445
   },
   {
@@ -7472,8 +7472,8 @@
     "id": 1494
   },
   {
-    "word": "soydaş",
-    "meaning": "Soyları bir olan, türdeş, hemcins.",
+    "word": "mengene",
+    "meaning": "Onarma, işleme, düzeltme gibi işlemlerin uygulanacağı nesneyi sıkıştırıp istenildiği gibi tutturmaya yarayan bir çeşit sıkıştırıcı alet.",
     "id": 1495
   },
   {
@@ -17782,8 +17782,8 @@
     "id": 3556
   },
   {
-    "word": "harp",
-    "meaning": "Savaş:",
+    "word": "fenni",
+    "meaning": "Fenle ilgili.",
     "id": 3557
   },
   {
