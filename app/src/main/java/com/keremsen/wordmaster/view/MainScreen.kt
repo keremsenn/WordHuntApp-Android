@@ -53,6 +53,8 @@ fun MainScreen(navController: NavController, settingsViewModel: SettingsViewMode
 
     val IsLoading = remember { mutableStateOf(false) }
 
+
+
     val context = LocalContext.current
     //admob
     MobileAds.initialize(context) {}
@@ -64,7 +66,6 @@ fun MainScreen(navController: NavController, settingsViewModel: SettingsViewMode
 
     val currentLevel = userManager.getLevel().toString()
     val isSoundOn = settingsViewModel.isSoundOn
-
 
 
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
@@ -109,6 +110,34 @@ fun MainScreen(navController: NavController, settingsViewModel: SettingsViewMode
         ),
         label = "alpha"
     )
+
+    var isAnimating by remember { mutableStateOf(false) }
+    var navigationInProgress by remember { mutableStateOf(false) }
+
+    fun handleNavigation(destination: String) {
+        if (isAnimating || navigationInProgress) return
+
+        coroutineScope.launch {
+            isAnimating = true
+            navigationInProgress = true
+
+            if (isSoundOn) {
+                soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+            }
+
+            scale.animateTo(0.1f, animationSpec = tween(300))
+            alpha.animateTo(0f, animationSpec = tween(300))
+
+            navController.navigate(destination) {
+                // Navigasyon tamamlandığında stateleri sıfırla
+                launch {
+                    delay(300)
+                    isAnimating = false
+                    navigationInProgress = false
+                }
+            }
+        }
+    }
     if (showAdPopup) {
         BonusAdPopup(userManager,
             onWatchAd = {
@@ -117,17 +146,17 @@ fun MainScreen(navController: NavController, settingsViewModel: SettingsViewMode
             },
             onDismiss = {
                 showAdPopup = false
-            }, when {
-                hintCount in 1..4 -> "Ekstra Harf Bonus"
-                hintCount == 5 -> "Harf Bonus Bilgilendirme"
-                else -> "Harf Bonus Tükendi"
+            }, when (hintCount) {
+                in 1..4 -> "Ekstra Harf Bonusu"
+                5 -> "Harf Bonus Bilgilendirmesi"
+                else -> "Harf Bonusu Tükendi"
             }, if (hintCount < 5) {
                 "3 Adet harf bonusu kazanmak için reklam izlemek ister misin?"
             } else {
                 "Harf bonusu kullanarak kelimedeki rastgele bir harfi öğrenebilirsin."
             },
-            if (hintCount == 5) true else false, isSoundOn,
-            soundPool,soundId, onRewardEarned = {
+            hintCount == 5, isSoundOn,
+            soundPool, soundId, onRewardEarned = {
                 // Ödül alındığında hintCount'u güncelle
                 coroutineScope.launch {
                     hintCount = userManager.getHintBonus()
@@ -171,17 +200,9 @@ fun MainScreen(navController: NavController, settingsViewModel: SettingsViewMode
             ) {
                 // Profil butonu
                 IconButton(
-                    onClick = {
-                        coroutineScope.launch {
-                            if (isSoundOn) {
-                                soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
-                            }
-                            scale.animateTo(0.1f, animationSpec = tween(300))
-                            alpha.animateTo(0f, animationSpec = tween(300))
-                            navController.navigate("ProfileScreen")
-                        }
-                    },
-                    modifier = Modifier.size(60.dp)
+                    onClick = { handleNavigation("ProfileScreen") },
+                    modifier = Modifier.size(60.dp),
+                    enabled = !isAnimating && !navigationInProgress
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.profile2),
@@ -193,17 +214,9 @@ fun MainScreen(navController: NavController, settingsViewModel: SettingsViewMode
 
                 // Ayarlar butonu
                 IconButton(
-                    onClick = {
-                        coroutineScope.launch {
-                            if (isSoundOn) {
-                                soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
-                            }
-                            scale.animateTo(0.1f, animationSpec = tween(300))
-                            alpha.animateTo(0f, animationSpec = tween(300))
-                            navController.navigate("SettingScreen")
-                        }
-                    },
-                    modifier = Modifier.size(60.dp)
+                    onClick = { handleNavigation("SettingScreen") },
+                    modifier = Modifier.size(60.dp),
+                    enabled = !isAnimating && !navigationInProgress
                 ) {
                     Image(
                         painter = painterResource(id = R.drawable.settings2),
@@ -227,7 +240,8 @@ fun MainScreen(navController: NavController, settingsViewModel: SettingsViewMode
             Box(
                 modifier = Modifier
                     .size(250.dp)
-                    .align(Alignment.Center)
+                    .align(Alignment.Center).scale(scale.value)
+                    .alpha(alpha.value)
                     .drawBehind {
                         drawCircle(
                             color = Color.White.copy(alpha = animatedAlpha),
@@ -264,11 +278,9 @@ fun MainScreen(navController: NavController, settingsViewModel: SettingsViewMode
                 // BAŞLA butonu
                 Button(
                     onClick = {
-                        if (isSoundOn) {
-                            soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                        if (!isAnimating && !navigationInProgress) {
+                            handleNavigation("LevelScreen/$currentLevel")
                         }
-                        navController.navigate("LevelScreen/$currentLevel")
-
                     },
                     modifier = Modifier
                         .align(Alignment.TopCenter)
@@ -279,7 +291,8 @@ fun MainScreen(navController: NavController, settingsViewModel: SettingsViewMode
                         .alpha(alpha.value),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = Color(0xFF4CAF50)
-                    )
+                    ),
+                    enabled = !isAnimating // Animasyon sırasında butonu devre dışı bırak
                 ) {
                     Text(
                         text = "BAŞLA",
@@ -294,17 +307,20 @@ fun MainScreen(navController: NavController, settingsViewModel: SettingsViewMode
                         .align(Alignment.TopEnd)
                         .clickable(
                             indication = null,
-                            interactionSource = remember { MutableInteractionSource() }
+                            interactionSource = remember { MutableInteractionSource() },
+                            enabled = !isAnimating && !navigationInProgress // Animasyon sırasında butonu devre dışı bırak
                         ) {
-                            // reklam ver
-                            if (isSoundOn)
-                                soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
-
-                            showAdPopup = true
+                            if (!isAnimating) { // Sadece animasyon yokken tıklamaya izin ver
+                                if (isSoundOn) {
+                                    soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                                }
+                                showAdPopup = true
+                            }
                         }
                 ) {
                     Column(
-                        modifier = Modifier.fillMaxSize(),
+                        modifier = Modifier.fillMaxSize().scale(scale.value)
+                            .alpha(alpha.value),
                         horizontalAlignment = Alignment.CenterHorizontally, // içeriği ortala
                         verticalArrangement = Arrangement.Top // yukarıdan aşağı yerleştir
                     ) {
@@ -323,10 +339,13 @@ fun MainScreen(navController: NavController, settingsViewModel: SettingsViewMode
                     }
                 }
             }
-           BannerAdd(  modifier = Modifier
-               .fillMaxWidth()
-               .height(60.dp)
-               .align(Alignment.BottomCenter))
+            BannerAdd(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp).scale(scale.value)
+                    .alpha(alpha.value)
+                    .align(Alignment.BottomCenter)
+            )
         }
 
     }
