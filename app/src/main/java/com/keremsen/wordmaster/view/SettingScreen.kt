@@ -1,6 +1,5 @@
 package com.keremsen.wordmaster.view
 
-
 import android.content.Context
 import android.content.Intent
 import android.media.MediaPlayer
@@ -68,7 +67,6 @@ import com.keremsen.wordmaster.viewmodel.SettingsViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
-
 @Composable
 fun SettingScreen(
     navController: NavController,
@@ -87,7 +85,6 @@ fun SettingScreen(
 
     val coroutineScope = rememberCoroutineScope()
 
-
     val soundPool = remember {
         SoundPool.Builder()
             .setMaxStreams(1)
@@ -97,9 +94,12 @@ fun SettingScreen(
         soundPool.load(context, R.raw.clikedsound, 1)
     }
 
-
     // Animasyon durumu
     var visible by remember { mutableStateOf(false) }
+    var isAnimating by remember { mutableStateOf(false) }
+
+    // Çoklu tıklama önleme için debounce state'i
+    var isClickEnabled by remember { mutableStateOf(true) }
 
     DisposableEffect(Unit) {
         visible = true
@@ -118,19 +118,149 @@ fun SettingScreen(
         animationSpec = tween(durationMillis = 300)
     ).value
 
-
     fun handleBack() {
+        if (!isClickEnabled || isAnimating) return
+
+        isClickEnabled = false
+        isAnimating = true
         coroutineScope.launch {
             visible = false
             delay(200)
             navController.popBackStack()
+            launch {
+                delay(300)
+                isAnimating = false
+                isClickEnabled = true
+            }
+        }
+    }
+
+    fun handleCancel() {
+        if (!isClickEnabled || isAnimating) return
+
+        isClickEnabled = false
+        coroutineScope.launch {
+            if (isSoundOn) {
+                soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+            }
+            isAnimating = true
+            visible = false
+            delay(200)
+            navController.navigate("MainScreen") {
+                popUpTo("SettingScreen") { inclusive = true }
+                launch {
+                    delay(300)
+                    isAnimating = false
+                    isClickEnabled = true
+                }
+            }
+        }
+    }
+
+    fun handleMusicToggle() {
+        if (!isClickEnabled || isAnimating) return
+
+        isClickEnabled = false
+        if (isSoundOn) {
+            soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+        }
+        if (isMusicOn)
+            musicPlayerViewModel.stopMusic()
+        else
+            musicPlayerViewModel.startMusic()
+
+        coroutineScope.launch {
+            delay(300)
+            isClickEnabled = true
+        }
+    }
+
+    fun handleSoundToggle() {
+        if (!isClickEnabled || isAnimating) return
+
+        isClickEnabled = false
+        if (isSoundOn) {
+            soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+        }
+        settingsViewModel.toggleSound()
+
+        coroutineScope.launch {
+            delay(300)
+            isClickEnabled = true
+        }
+    }
+
+    fun handleEmailClick() {
+        if (!isClickEnabled || isAnimating) return
+
+        isClickEnabled = false
+        if (isSoundOn) {
+            soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+        }
+        val intent = Intent(Intent.ACTION_SENDTO).apply {
+            data = Uri.parse("mailto:keremsen1071@gmail.com")
+        }
+        context.startActivity(intent)
+
+        coroutineScope.launch {
+            delay(500)
+            isClickEnabled = true
+        }
+    }
+
+    fun handleDeleteAccount() {
+        if (!isClickEnabled || isAnimating) return
+
+        isClickEnabled = false
+        if (isSoundOn) {
+            soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+        }
+        showDialog = true
+
+        coroutineScope.launch {
+            delay(200)
+            isClickEnabled = true
+        }
+    }
+
+    fun handlePrivacyClick() {
+        if (!isClickEnabled || isAnimating) return
+
+        isClickEnabled = false
+        if (isSoundOn) {
+            soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+        }
+        val intent = Intent(
+            Intent.ACTION_VIEW,
+            Uri.parse("https://docs.google.com/document/d/1LhY6M1WrICkN0JNV0hF6NuHmnPITnEYBJfq4Bwx9GZ0/edit?usp=sharing")
+        )
+        context.startActivity(intent)
+
+        coroutineScope.launch {
+            delay(500)
+            isClickEnabled = true
+        }
+    }
+
+    fun handleIconsClick() {
+        if (!isClickEnabled || isAnimating) return
+
+        isClickEnabled = false
+        if (isSoundOn) {
+            soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+        }
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://icons8.com"))
+        context.startActivity(intent)
+
+        coroutineScope.launch {
+            delay(500)
+            isClickEnabled = true
         }
     }
 
     BackHandler {
         handleBack()
     }
-
 
     Surface(modifier = Modifier.fillMaxSize()) {
         Image(
@@ -157,18 +287,8 @@ fun SettingScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 IconButton(
-                    onClick = {
-                        coroutineScope.launch {
-                            if (isSoundOn) {
-                                soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
-                            }
-                            visible = false
-                            delay(200)
-                            navController.navigate("MainScreen") {
-                                popUpTo("SettingScreen") { inclusive = true }
-                            }
-                        }
-                    },
+                    onClick = { handleCancel() },
+                    enabled = isClickEnabled && !isAnimating,
                     modifier = Modifier.size(55.dp)
                 ) {
                     Image(
@@ -230,14 +350,12 @@ fun SettingScreen(
                                     if (isMusicOn) colorResource(R.color.DarkGreen) else Color.White,
                                     CircleShape
                                 )
-                                .clickable {
-                                    if (isSoundOn) {
-                                        soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
-                                    }
-                                    if (isMusicOn)
-                                        musicPlayerViewModel.stopMusic()
-                                    else
-                                        musicPlayerViewModel.startMusic()
+                                .clickable(
+                                    enabled = isClickEnabled && !isAnimating,
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }
+                                ) {
+                                    handleMusicToggle()
                                 },
                             contentAlignment = Alignment.Center
                         ) {
@@ -259,11 +377,12 @@ fun SettingScreen(
                                     if (isSoundOn) colorResource(R.color.DarkGreen) else Color.White,
                                     CircleShape
                                 )
-                                .clickable {
-                                    if (isSoundOn) {
-                                        soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
-                                    }
-                                    settingsViewModel.toggleSound()
+                                .clickable(
+                                    enabled = isClickEnabled && !isAnimating,
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }
+                                ) {
+                                    handleSoundToggle()
                                 },
                             contentAlignment = Alignment.Center
                         ) {
@@ -284,20 +403,11 @@ fun SettingScreen(
                             .fillMaxWidth(0.8f)
                             .height(50.dp)
                             .clickable(
+                                enabled = isClickEnabled && !isAnimating,
                                 indication = null,
                                 interactionSource = remember { MutableInteractionSource() }
                             ) {
-                                // Email Intent oluştur
-                                if (isSoundOn) {
-                                    soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
-                                }
-                                val intent = Intent(Intent.ACTION_SENDTO).apply {
-                                    data = Uri.parse("mailto:keremsen1071@gmail.com")
-                                    // İstersen subject ve body ekleyebilirsin
-                                    // putExtra(Intent.EXTRA_SUBJECT, "Konu")
-                                    // putExtra(Intent.EXTRA_TEXT, "Mesajınız")
-                                }
-                                context.startActivity(intent)
+                                handleEmailClick()
                             }
                             .border(
                                 width = 2.dp,
@@ -326,67 +436,82 @@ fun SettingScreen(
 
                     Spacer(modifier = Modifier.weight(1f))
 
-                    Row(modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.Center) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Center
+                    ) {
                         Button(
-                            onClick = {
-                                if (isSoundOn) {
-                                    soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
-                                }
-                                showDialog= true },
+                            onClick = { handleDeleteAccount() },
+                            enabled = isClickEnabled && !isAnimating,
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = colorResource(R.color.deleteAcountButton),
-                                contentColor = Color.White  // Yazı rengi
+                                contentColor = Color.White
                             ),
-                            shape = RoundedCornerShape(50), // Oval köşeler
+                            shape = RoundedCornerShape(50),
                             border = BorderStroke(3.dp, colorResource(R.color.deleteAcountButtonBorder)),
                             modifier = Modifier
                                 .padding(16.dp)
-                                .height(45.dp).fillMaxWidth(0.7f)
+                                .height(45.dp)
+                                .fillMaxWidth(0.7f)
                         ) {
                             Text(text = "Hesabı Sil", fontSize = 22.sp)
                         }
                     }
+
                     if (showDialog) {
-                    AlertDialog(
-                        onDismissRequest = {
-                            showDialog = false
-                        },
-                        title = {
-                            Text(text = "Hesabı Sil",fontSize = 22.sp)
-                        },
-                        text = {
-                            Text("Hesap bilgileriniz silinecek bu işlem geri alınamaz. Emin misiniz?",
-                                fontSize = 18.sp)
-                        },
-                        confirmButton = {
-                            TextButton(onClick = {
-                                if (isSoundOn) {
-                                    soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                        AlertDialog(
+                            onDismissRequest = {
+                                if (isClickEnabled) {
+                                    showDialog = false
                                 }
+                            },
+                            title = {
+                                Text(text = "Hesabı Sil", fontSize = 22.sp)
+                            },
+                            text = {
+                                Text(
+                                    "Hesap bilgileriniz silinecek bu işlem geri alınamaz. Emin misiniz?",
+                                    fontSize = 18.sp
+                                )
+                            },
+                            confirmButton = {
+                                TextButton(
+                                    onClick = {
+                                        if (!isClickEnabled) return@TextButton
 
-                                userManager.deleteAcount()
-                                showDialog = false
-                                navController.navigate("SplashScreen") {
-                                    popUpTo("SettingScreen") { inclusive = true }
+                                        isClickEnabled = false
+                                        if (isSoundOn) {
+                                            soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                                        }
+                                        userManager.deleteAcount()
+                                        showDialog = false
+                                        navController.navigate("SplashScreen") {
+                                            popUpTo("SettingScreen") { inclusive = true }
+                                        }
+                                    },
+                                    enabled = isClickEnabled
+                                ) {
+                                    Text("Evet", color = Color.Red)
                                 }
-                            }) {
-                                Text("Evet", color = Color.Red)
-                            }
-                        },
-                        dismissButton = {
-                            TextButton(onClick = {
-                                if (isSoundOn) {
-                                    soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
-                                }
+                            },
+                            dismissButton = {
+                                TextButton(
+                                    onClick = {
+                                        if (!isClickEnabled) return@TextButton
 
-                                showDialog = false
-                            }) {
-                                Text("Hayır")
+                                        if (isSoundOn) {
+                                            soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+                                        }
+                                        showDialog = false
+                                    },
+                                    enabled = isClickEnabled
+                                ) {
+                                    Text("Hayır")
+                                }
                             }
-                        }
-                    )
-                }
+                        )
+                    }
+
                     Spacer(modifier = Modifier.size(20.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -399,25 +524,18 @@ fun SettingScreen(
                             modifier = Modifier
                                 .padding(8.dp)
                                 .clickable(
+                                    enabled = isClickEnabled && !isAnimating,
                                     indication = null,
                                     interactionSource = remember { MutableInteractionSource() }
                                 ) {
-                                    if (isSoundOn) {
-                                        soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
-                                    }
-                                    val intent =
-                                        Intent(
-                                            Intent.ACTION_VIEW,
-                                            Uri.parse("https://docs.google.com/document/d/1LhY6M1WrICkN0JNV0hF6NuHmnPITnEYBJfq4Bwx9GZ0/edit?usp=sharing")
-                                        )
-                                    context.startActivity(intent)
+                                    handlePrivacyClick()
                                 }
                         )
                         Spacer(modifier = Modifier.size(8.dp))
                         Box(
                             modifier = Modifier
-                                .width(2.dp) // çizgi kalınlığı
-                                .height(24.dp) // çizgi uzunluğu
+                                .width(2.dp)
+                                .height(24.dp)
                                 .background(Color.Gray)
                                 .padding(horizontal = 8.dp)
                         )
@@ -430,15 +548,11 @@ fun SettingScreen(
                             modifier = Modifier
                                 .padding(8.dp)
                                 .clickable(
+                                    enabled = isClickEnabled && !isAnimating,
                                     indication = null,
                                     interactionSource = remember { MutableInteractionSource() }
                                 ) {
-                                    if (isSoundOn) {
-                                        soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
-                                    }
-                                    val intent =
-                                        Intent(Intent.ACTION_VIEW, Uri.parse("https://icons8.com"))
-                                    context.startActivity(intent)
+                                    handleIconsClick()
                                 }
                         )
                     }
