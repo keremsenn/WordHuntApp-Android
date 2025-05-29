@@ -1,6 +1,5 @@
 package com.keremsen.wordmaster.view
 
-
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -73,9 +72,9 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
         soundPool.load(context, R.raw.clikedsound, 1)
     }
 
-
     // Animasyon durumu
     var visible by remember { mutableStateOf(false) }
+
     val offsetY = animateFloatAsState(
         targetValue = if (visible) 0f else 1000f,
         animationSpec = tween(durationMillis = 300, easing = FastOutSlowInEasing), label = ""
@@ -91,12 +90,65 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
         mutableStateOf(userManager.getName())
     }
 
+    var isAnimating by remember { mutableStateOf(false) }
+    var profileState by remember { mutableStateOf(false) }
+
+    // Çoklu tıklama önleme için debounce state'i
+    var isClickEnabled by remember { mutableStateOf(true) }
 
     fun handleBack() {
+        if (!isClickEnabled || isAnimating || profileState) return
+
+        isClickEnabled = false
+        isAnimating = true
         coroutineScope.launch {
             visible = false
             delay(200)
             navController.popBackStack()
+            launch {
+                delay(300)
+                isAnimating = false
+                isClickEnabled = true
+            }
+        }
+    }
+
+    fun handleCancel() {
+        if (!isClickEnabled || isAnimating || profileState) return
+
+        isClickEnabled = false
+        coroutineScope.launch {
+            if (isSoundOn) {
+                soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+            }
+            isAnimating = true
+            visible = false
+            delay(200)
+            navController.navigate("MainScreen") {
+                launch {
+                    delay(400)
+                    isAnimating = false
+                    isClickEnabled = true
+                }
+                popUpTo("ProfileScreen") { inclusive = true }
+            }
+        }
+    }
+
+    fun handleProfileClick() {
+        if (!isClickEnabled || isAnimating || profileState) return
+
+        isClickEnabled = false
+        if (isSoundOn) {
+            soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
+        }
+        profileState = true
+        isEditingName = true
+
+        // Kısa bir süre sonra tıklama kontrolünü tekrar aktifleştir
+        coroutineScope.launch {
+            delay(300)
+            isClickEnabled = true
         }
     }
 
@@ -135,19 +187,10 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
                 horizontalArrangement = Arrangement.Center,
                 verticalAlignment = Alignment.CenterVertically
             ) {
+                //cancel iconbutton
                 IconButton(
-                    onClick = {
-                        coroutineScope.launch {
-                            if (isSoundOn) {
-                                soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
-                            }
-                            visible = false
-                            delay(200)
-                            navController.navigate("MainScreen") {
-                                popUpTo("ProfileScreen") { inclusive = true }
-                            }
-                        }
-                    },
+                    onClick = { handleCancel() },
+                    enabled = isClickEnabled && !isAnimating && !profileState,
                     modifier = Modifier.size(55.dp)
                 ) {
                     Image(
@@ -159,7 +202,8 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
                 }
             }
             Spacer(modifier = Modifier.height(5.dp))
-            //profil kısmı
+
+            // Profil kısmı
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -175,13 +219,11 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
                     modifier = Modifier
                         .size(150.dp)
                         .clickable(
+                            enabled = isClickEnabled && !isAnimating && !profileState,
                             indication = null,
                             interactionSource = remember { MutableInteractionSource() }
                         ) {
-                            if (isSoundOn) {
-                                soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
-                            }
-                            isEditingName = true
+                            handleProfileClick()
                         }
                 ) {
                     Image(
@@ -189,6 +231,7 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
                         contentDescription = "accountprofile",
                     )
                 }
+                //isim düzenleme
                 if (isEditingName) {
                     Row(
                         modifier = Modifier
@@ -199,7 +242,9 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
                     ) {
                         OutlinedTextField(
                             value = profileName,
-                            onValueChange = { profileName = it },
+                            onValueChange = { if (it.length <= 20) {
+                                profileName = it
+                            }},
                             modifier = Modifier
                                 .weight(1f)
                                 .padding(end = 8.dp),
@@ -209,6 +254,12 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
                                 onDone = {
                                     userManager.saveName(profileName)
                                     isEditingName = false
+                                    profileState = false
+                                    // Kaydetme işlemi sonrası tıklama kontrolünü aktifleştir
+                                    coroutineScope.launch {
+                                        delay(100)
+                                        isClickEnabled = true
+                                    }
                                 }
                             ),
                             colors = colors(
@@ -222,13 +273,20 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
                                 fontWeight = Bold
                             )
                         )
+                        //kaydet button
                         Button(
                             onClick = {
                                 if (isSoundOn) {
                                     soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
                                 }
                                 userManager.saveName(profileName)
-                                isEditingName = false 
+                                profileState = false
+                                isEditingName = false
+                                // Kaydetme işlemi sonrası tıklama kontrolünü aktifleştir
+                                coroutineScope.launch {
+                                    delay(100)
+                                    isClickEnabled = true
+                                }
                             },
                             colors = androidx.compose.material3.ButtonDefaults.buttonColors(
                                 containerColor = Color(0xFF4CAF50)
@@ -253,5 +311,4 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
             }
         }
     }
-
 }
