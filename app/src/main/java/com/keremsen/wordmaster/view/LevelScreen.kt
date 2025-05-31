@@ -580,7 +580,7 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel,setti
                                     .clickable(
                                         indication = null,
                                         interactionSource = remember { MutableInteractionSource() },
-                                        enabled = availablePositions.isNotEmpty()
+                                        enabled = availablePositions.isNotEmpty() && !startAnimation
                                     ) {
 
                                         if (hintCount.intValue != 0) {
