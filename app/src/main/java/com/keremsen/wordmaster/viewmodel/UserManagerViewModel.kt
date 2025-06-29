@@ -4,10 +4,9 @@ import android.content.SharedPreferences
 import android.os.Build
 import androidx.lifecycle.ViewModel
 import java.text.SimpleDateFormat
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
 import java.util.Date
 import java.util.Locale
+import androidx.core.content.edit
 
 class UserManagerViewModel(private val sharedPreferences: SharedPreferences): ViewModel() {
 
@@ -34,7 +33,7 @@ class UserManagerViewModel(private val sharedPreferences: SharedPreferences): Vi
         checkAndResetDailyBonus()
         val current = getHintBonus()
         if (current > 0) {
-            sharedPreferences.edit().putInt("hint_bonus", current - 1).apply()
+            sharedPreferences.edit { putInt("hint_bonus", current - 1) }
             return current - 1
         }
         return 0
@@ -44,7 +43,7 @@ class UserManagerViewModel(private val sharedPreferences: SharedPreferences): Vi
         checkAndResetDailyBonus()
         val current = getHintBonus()
         val updated = (current + amount).coerceAtMost(5) // En fazla 5 olabilir
-        sharedPreferences.edit().putInt("hint_bonus", updated).apply()
+        sharedPreferences.edit { putInt("hint_bonus", updated) }
         onComplete(updated)
     }
 
@@ -53,15 +52,15 @@ class UserManagerViewModel(private val sharedPreferences: SharedPreferences): Vi
         val lastDate = sharedPreferences.getString("last_bonus_date", "")
 
         if (today != lastDate) {
-            sharedPreferences.edit()
-                .putInt("hint_bonus", 5)
-                .putString("last_bonus_date", today)
-                .apply()
+            sharedPreferences.edit {
+                putInt("hint_bonus", 5)
+                    .putString("last_bonus_date", today)
+            }
         }
     }
 
     fun saveLevel(level: Int) {
-        sharedPreferences.edit().putInt("user_level", level).apply()
+        sharedPreferences.edit { putInt("user_level", level) }
     }
 
     fun getLevel(): Int {
@@ -69,11 +68,11 @@ class UserManagerViewModel(private val sharedPreferences: SharedPreferences): Vi
     }
 
     fun resetLevel() {
-        sharedPreferences.edit().putInt("user_level", 1).apply()
+        sharedPreferences.edit { putInt("user_level", 1) }
     }
 
     fun saveName(name: String) {
-        sharedPreferences.edit().putString("user_name", name).apply()
+        sharedPreferences.edit { putString("user_name", name) }
     }
 
     fun getName(): String {
@@ -81,16 +80,16 @@ class UserManagerViewModel(private val sharedPreferences: SharedPreferences): Vi
     }
 
     fun resetName() {
-        sharedPreferences.edit().putString("user_name", "Misafir583834").apply()
+        sharedPreferences.edit { putString("user_name", "Misafir583834") }
     }
 
     fun deleteAcount(){
-        sharedPreferences.edit()
-            .putInt("user_level", 1)
-            .putString("user_name", "Misafir583834")
-            .putInt("hint_bonus", 5)
-            .putString("last_bonus_date", getTodayDateString())
-            .apply()
+        sharedPreferences.edit {
+            putInt("user_level", 1)
+                .putString("user_name", "Misafir583834")
+                .putInt("hint_bonus", 5)
+                .putString("last_bonus_date", getTodayDateString())
+        }
     }
 
 
