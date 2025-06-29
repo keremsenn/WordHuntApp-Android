@@ -34,14 +34,14 @@ class MusicPlayerViewModel(application: Application) : AndroidViewModel(applicat
         }
     }
 
-    fun pauseMusic() {
+    private fun pauseMusic() {
         if (_mediaPlayer.isPlaying) {
             _mediaPlayer.pause()
             _isMusicPause.value = true
         }else _isMusicPause.value= true
     }
 
-    fun releasePlayer() {
+    private fun releasePlayer() {
         _mediaPlayer.release()
     }
 
