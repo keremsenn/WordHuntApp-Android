@@ -278,6 +278,7 @@ fun SettingScreen(
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(top = 43.dp)
                     .height(65.dp)
                     .graphicsLayer {
                         translationY = offsetY
