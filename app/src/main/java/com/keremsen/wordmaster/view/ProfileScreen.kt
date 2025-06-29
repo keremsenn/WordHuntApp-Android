@@ -59,8 +59,8 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
     val isSoundOn = settingsViewModel.isSoundOn
 
     val context = LocalContext.current
-    val UserManagerSharedPref = context.getSharedPreferences("UserPreferences", Context.MODE_PRIVATE)
-    val userManager = remember { UserManagerViewModel(UserManagerSharedPref)  }
+    val userManagerSharedPref = context.getSharedPreferences("UserPreferences", Context.MODE_PRIVATE)
+    val userManager = remember { UserManagerViewModel(userManagerSharedPref)  }
 
     val coroutineScope = rememberCoroutineScope()
     val soundPool = remember {
