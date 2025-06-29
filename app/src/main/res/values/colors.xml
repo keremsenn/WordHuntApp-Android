@@ -10,6 +10,10 @@
     <color name="Green">#429434</color>
     <color name="DarkGreen">#2F941F</color>
 
+    <color name="profile">#E1BFA74B</color>
+    <color name="profile2">#EBA6BFD6</color>
+    <color name="profile3">#EB8888DB</color>
+
     <color name="LoadingBackGroundColor">#BAECED</color>
     <color name="boxBackground">#BEC7E0</color>
     <color name="boxBorder">#A0A6BC</color>
