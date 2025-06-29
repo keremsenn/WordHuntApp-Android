@@ -50,17 +50,29 @@ import androidx.compose.ui.text.input.ImeAction
 import android.content.Context
 import android.media.SoundPool
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.OutlinedTextFieldDefaults.colors
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.TextStyle
+import androidx.core.content.ContextCompat
+import com.keremsen.wordmaster.utils.WordListDialog
 import com.keremsen.wordmaster.viewmodel.UserManagerViewModel
+import com.keremsen.wordmaster.viewmodel.WordViewModel
 
 @Composable
-fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewModel) {
+fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewModel,wordViewModel: WordViewModel) {
     val isSoundOn = settingsViewModel.isSoundOn
-
+    val words by wordViewModel.kelimeler.collectAsState(initial = emptyList())
     val context = LocalContext.current
     val userManagerSharedPref = context.getSharedPreferences("UserPreferences", Context.MODE_PRIVATE)
     val userManager = remember { UserManagerViewModel(userManagerSharedPref)  }
+
+    var showWordListDialog by remember { mutableStateOf(false) }
+
+    val level = userManager.getLevel()
 
     val coroutineScope = rememberCoroutineScope()
     val soundPool = remember {
@@ -179,6 +191,7 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(top = 43.dp)
                     .height(65.dp)
                     .graphicsLayer {
                         translationY = offsetY
@@ -300,15 +313,110 @@ fun ProfileScreen(navController: NavController, settingsViewModel: SettingsViewM
                         }
                     }
                 } else {
-                    Text(
-                        text = profileName,
-                        fontWeight = Bold,
-                        fontSize = 22.sp,
-                        color = Color.White,
-                        modifier = Modifier.padding(top = 2.dp)
-                    )
+                        Text(
+                            text = profileName,
+                            fontWeight = Bold,
+                            fontSize = 22.sp,
+                            color = Color.White,
+                            modifier = Modifier.padding(top = 2.dp)
+                        )
                 }
             }
+            //level tablosu
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .fillMaxHeight(0.7f)
+                    .graphicsLayer {
+                        translationY = offsetY
+                        this.alpha = alpha
+                    },
+                horizontalArrangement = Arrangement.Center
+            ){
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth(0.85f)
+                        .fillMaxHeight()
+                        .clip(RoundedCornerShape(16.dp)) // Köşeleri oval yapar
+                        .background(
+                            Brush.linearGradient(
+                                colors = listOf(
+                                    Color(ContextCompat.getColor(context, R.color.profile2)),
+                                    Color(ContextCompat.getColor(context, R.color.profile)),
+                                    Color(ContextCompat.getColor(context, R.color.profile3))
+                                ) // Mor-mavi gradient
+                            )
+                        )
+                ) {
+                    // İçerik buraya
+                    Row(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        // Sol taraf
+                        Column(
+                            verticalArrangement = Arrangement.Center,
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.fillMaxWidth(0.46f)
+                        ) {
+                            Text(
+                                text = "Yolculuk",
+                                color = Color.White.copy(alpha = 0.9f),
+                                fontSize = 20.sp,
+                                fontWeight = Bold
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "Level $level",
+                                color = Color.White.copy(alpha = 0.9f),
+                                fontSize = 18.sp
+                            )
+                        }
+
+                        // Ortadaki ince beyaz çizgi
+                        Box(
+                            modifier = Modifier
+                                .width(1.dp)
+                                .fillMaxHeight(0.85f)
+                                .background(Color.White.copy(alpha = 0.7f))
+                        )
+
+                        // Sağ taraf
+                        Row(
+                            modifier = Modifier
+                                .fillMaxHeight(0.8f)
+                                .clickable(
+                                    enabled =isClickEnabled && !isAnimating && !profileState,
+                                    indication = null,
+                                    interactionSource = remember { MutableInteractionSource() }
+                                ) {
+                                    showWordListDialog = true
+                                },
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Kelime Ağacım",
+                                fontSize = 20.sp,
+                                color = Color.White.copy(alpha = 0.9f),
+                                modifier = Modifier.padding(8.dp)
+                            )
+                        }
+
+                        WordListDialog(
+                            isVisible = showWordListDialog,
+                            onDismiss = { showWordListDialog = false },
+                            wordList = words,
+                            level = level
+                        )
+                    }
+                }
+
+
+            }
+
         }
     }
 }
