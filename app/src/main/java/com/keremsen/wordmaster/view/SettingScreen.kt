@@ -2,9 +2,7 @@ package com.keremsen.wordmaster.view
 
 import android.content.Context
 import android.content.Intent
-import android.media.MediaPlayer
 import android.media.SoundPool
-import android.net.Uri
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateFloatAsState
@@ -66,6 +64,7 @@ import com.keremsen.wordmaster.viewmodel.MusicPlayerViewModel
 import com.keremsen.wordmaster.viewmodel.SettingsViewModel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import androidx.core.net.toUri
 
 @Composable
 fun SettingScreen(
@@ -198,7 +197,7 @@ fun SettingScreen(
             soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
         }
         val intent = Intent(Intent.ACTION_SENDTO).apply {
-            data = Uri.parse("mailto:keremsen1071@gmail.com")
+            data = "mailto:keremsen1071@gmail.com".toUri()
         }
         context.startActivity(intent)
 
@@ -232,7 +231,7 @@ fun SettingScreen(
         }
         val intent = Intent(
             Intent.ACTION_VIEW,
-            Uri.parse("https://docs.google.com/document/d/1LhY6M1WrICkN0JNV0hF6NuHmnPITnEYBJfq4Bwx9GZ0/edit?usp=sharing")
+            "https://docs.google.com/document/d/1LhY6M1WrICkN0JNV0hF6NuHmnPITnEYBJfq4Bwx9GZ0/edit?usp=sharing".toUri()
         )
         context.startActivity(intent)
 
@@ -249,7 +248,7 @@ fun SettingScreen(
         if (isSoundOn) {
             soundPool.play(soundId, 1f, 1f, 1, 0, 1f)
         }
-        val intent = Intent(Intent.ACTION_VIEW, Uri.parse("https://icons8.com"))
+        val intent = Intent(Intent.ACTION_VIEW, "https://icons8.com".toUri())
         context.startActivity(intent)
 
         coroutineScope.launch {
@@ -544,7 +543,7 @@ fun SettingScreen(
 
                         Text(
                             text = "Icons by Icons8",
-                            fontSize = 16.sp,
+                            fontSize = 14.sp,
                             color = Color.White.copy(alpha = 0.7f),
                             modifier = Modifier
                                 .padding(8.dp)

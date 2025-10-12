@@ -11,7 +11,7 @@ import com.google.android.gms.ads.rewardedinterstitial.RewardedInterstitialAdLoa
 fun loadAndShowRewardedInterstitialAd(
     context: Context,
     activity: Activity,
-    adUnitId: String = "ca-app-pub-3940256099942544/5354046379", // Ödüllü geçiş test ID
+    adUnitId: String = "ca-app-pub-9415244478097941/8012370277", // Ödüllü geçiş test ID ca-app-pub-3940256099942544/5354046379
     onRewardEarned: (rewardAmount: Int, rewardType: String) -> Unit,
     onAdDismissed: () -> Unit
 ) {

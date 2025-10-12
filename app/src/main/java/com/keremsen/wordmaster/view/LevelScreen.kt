@@ -571,7 +571,7 @@ fun LevelScreen(navController: NavController, wordViewModel: WordViewModel,setti
                                     Text(
                                         text = "Onayla",
                                         color = Color.White,
-                                        fontSize = 22.sp
+                                        fontSize = 18.sp
                                     )
                                 }
                                 Box(modifier = Modifier

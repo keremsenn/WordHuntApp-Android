@@ -22,8 +22,8 @@ fun ResultBannerAd(modifier: Modifier = Modifier) {
         factory = { ctx ->
             AdView(ctx).apply {
                 setAdSize(AdSize.FULL_BANNER)
-                // Test reklam ID'si
-                adUnitId = "ca-app-pub-3940256099942544/6300978111"
+                // Test reklam ID'si ca-app-pub-3940256099942544/6300978111
+                adUnitId = "ca-app-pub-9415244478097941/8673881109"
 
                 // Reklam yükleme durumunu takip et
                 adListener = object : AdListener() {
