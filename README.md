@@ -6,6 +6,17 @@ WordMaster, kullanıcıların verilen ipuçlarından (anlamlardan) yola çıkara
 
 Bu uygulama, kelime dağarcığını geliştirmek ve hafızayı tazelemek isteyen kullanıcılar için tasarlanmıştır. Kullanıcıya bir kelimenin anlamı ipucu olarak verilir ve karışık harfler veya boşluklar arasından doğru kelimeyi bulması istenir. Modern Android teknolojileri kullanılarak geliştirilen bu proje, akıcı animasyonlar ve kullanıcı dostu bir arayüz sunar.
 
+
+
+
+![WhatsApp Image 2025-12-22 at 22 20 00 (1)](https://github.com/user-attachments/assets/fa1435c3-410c-4d51-b87c-2ffd8c690b30)
+
+![WhatsApp Image 2025-12-22 at 22 20 00](https://github.com/user-attachments/assets/b021c7d4-ad60-4484-853e-38f0193adb7b)
+
+
+
+
+
 ## ✨ Özellikler
 
 *   **Zengin Kelime Hazinesi**: JSON tabanlı geniş bir kelime ve anlam veritabanı.
